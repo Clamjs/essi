@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base href="/" />
+    <title>${rel}</title>
+    <link type="text/css" rel="stylesheet" href="_virtual/css/ls.css" />
+</head>
+<body>
+<ul>
+{@if rel}
+    <li><a href="${rel}/../">..</a></li>
+{@/if}
+
+{@each dir as item}
+    <li><a class="dir" href="${rel}/${item}">${item}</a></li>
+{@/each}
+
+{@each file as item}
+    <li><a class="file" href="${rel}/${item}">${item}</a></li>
+{@/each}
+
+{@each virtual as item}
+<li><a class="virtual" href="${rel}/${item}">${item}</a></li>
+{@/each}
+</ul>
+</body>
+</html>
