@@ -47,12 +47,6 @@ Check if path point to assets `!`(`NULL` OR `Directory` OR `HTML`)
 `Input:` File Path `String`
 `Output:` `Boolen`
 
-## JSON_parse
-Parsing the JSON String `with comments`
-
-`Input:` JSON `String`
-`Output:` JSON `Object`
-
 ## customReplace
 Replace the custom defined `MARK` using JSON Map
 
