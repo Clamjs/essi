@@ -1,6 +1,6 @@
 {
   "name": "essi",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Enhanced SSI",
   "main": "index.js",
   "scripts": {
