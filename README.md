@@ -6,13 +6,23 @@ npm install essi
 
 ## Invoke
 ```
-var SSI    = require("essi");
+var ESSI   = require("essi");
 
-// SSI include three SUB-MOD: Local, Remote, Helper
-var Helper = SSI.Helper,
-    Local  = SSI.Local,
-    Remote = SSI.Remote;
+// SSI include three SUB-MOD: Local, Remote, Helper and a preAction static method
+var Helper = ESSI.Helper,
+    Local  = ESSI.Local,
+    Remote = ESSI.Remote;
+
+ESSI.preAction(url, realpath);
 ```
+
+# preAction METHOD
+To deal with the pre-transaction
+
+`Input:` Request URL `String`, Realpath `String`
+* The `realPath` argument is calculated by Helper.matchVirtual method
+`Output:` TODO `Object`
+* {method:`String`, args:`Array`}
 
 # Local MOD
 ```

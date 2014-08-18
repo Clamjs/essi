@@ -226,21 +226,33 @@ Remote.prototype = {
 
                         var q = _.uniq(Q);
                         if (q.length==1 && q[0]) {
-                            self.send(callback);
+                            callback(self.str);
                         }
                     });
                 })(m[i].match(/url="([^"]*?)"/)[1], i);
             }
         }
         else {
-            self.send(callback);
+            callback(self.str);
         }
-    },
-    send: function(callback) {
-        callback(this.str);
     }
 };
 
 exports.Local  = Local;
 exports.Remote = Remote;
 exports.Helper = Helper;
+
+exports.preAction = function(_url, file) {
+    delog.request(_url);
+    if (!Helper.isExists(file)) {
+        delog.error("<= "+file+"\n");
+        return {method:"error", args:["Not Found: "+file, 404]};
+    }
+    else if (Helper.isAssets(file)) {
+        delog.response(file+"\n");
+        return {method:"pipe", args:[file]};
+    }
+    else {
+        return {method:false};
+    }
+};
