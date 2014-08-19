@@ -33,6 +33,11 @@ local.fetch("realPath", vars);
 * The `options` argument must involve four items of `rootdir`, `target`, `virtual` & `mod`. The `remoteRegx` item is optional, which is a regx array
 * The `vars` argument is the data transfer to template, which is optional
 
+The template HTML string with the special Syntax:
+```
+<!--#include file="LOCAL_PATH" data='{"key":value,...}'-->
+```
+
 # Remote MOD
 ```
 var remote = new Remote("content");
