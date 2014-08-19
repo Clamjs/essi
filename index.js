@@ -12,7 +12,7 @@ var REGX = {
     def     : /<!--\s{0,}#def([\s\S]*?)-->/gi,
     kv      : /"([^"]*?)"\s{0,}:\s{0,}\$\{([^\}]*?)\}\s{0,},?/gi,
     remote  : /<!--#remote([^\-\>]*?)url="([^"]*?)"-->/gi,
-    mod     : /<!--\s{0,}#include[^\-\>]*?mod\s{0,}=\s{0,}["']\s{0,}([^"']*?)\s{0,}["'][^\-\>]*?-->/gi,
+    mod     : /<!--\s{0,}#include[^\-\>]*?file\s{0,}=\s{0,}["']\s{0,}([^"']*?)\s{0,}["'][^\-\>]*?-->/gi,
     data    : /data\s{0,}=\s{0,}["']\s{0,}(\{[\s\S]*?\})\s{0,}["']/
 };
 
@@ -22,7 +22,6 @@ function Local(_url, opt) {
     this.RT      = path.join(opt.rootdir, opt.target);
     this.requrl  = path.join(this.RT, url.parse(_url).pathname);
     this.virtual = opt.virtual;
-    this.mod     = opt.mod;
     this.remoteRegx = opt.remoteRegx ? opt.remoteRegx : [
         /<!--\s{0,}#include[^\-\>]*?tms\s{0,}=\s{0,}["']\s{0,}([^#"']*?)\s{0,}["'][^\-\>]*?-->/gi,
         /<!--\s{0,}HTTP\s{0,}:\s{0,}(.+)\,.+[^\-\>]*?-->/gi
@@ -102,7 +101,7 @@ Local.prototype = {
             }
 
             str.replace(REGX.mod, function(i, m1) {
-                var tempPath = path.join(self.RT, self.mod, m1);
+                var tempPath = path.join(self.RT, m1);
                 if (self.check(tempPath, realPath)) {
                     var tempData = i.match(REGX.data);
 
