@@ -19,13 +19,10 @@ var REGX = {
 juicer.set("strip", false);
 
 function Local(_url, opt) {
-    this.RT      = path.join(opt.rootdir, opt.target);
+    this.RT      = path.join(process.cwd(), opt.target);
     this.requrl  = path.join(this.RT, url.parse(_url).pathname);
     this.virtual = opt.virtual;
-    this.remoteRegx = opt.remoteRegx ? opt.remoteRegx : [
-        /<!--\s{0,}#include[^\-\>]*?tms\s{0,}=\s{0,}["']\s{0,}([^#"']*?)\s{0,}["'][^\-\>]*?-->/gi,
-        /<!--\s{0,}HTTP\s{0,}:\s{0,}(.+)\,.+[^\-\>]*?-->/gi
-    ];
+    this.remoteRegxStr = opt.remote ? opt.remote : [];
 
     this.TREE = null;
     this.vars = null;
@@ -46,8 +43,9 @@ Local.prototype = {
     ls : function(realDir) {
         delog.process(realDir+" [Directory]", 1);
 
-        var detail = fs.readdirSync(realDir);
         var rt = {dir:[], file:[], virtual:[], rel:path.relative(this.RT, this.requrl)};
+
+        var detail = fs.readdirSync(realDir);
         detail.forEach(function(i) {
             var state = fs.statSync(path.join(realDir, i));
             if (state.isDirectory()) {
@@ -94,8 +92,8 @@ Local.prototype = {
             }
 
             var str = this.readFile(realPath, vars, isMain);
-            for (var i in this.remoteRegx) {
-                str = str.replace(this.remoteRegx[i], function(i, m1) {
+            for (var i in this.remoteRegxStr) {
+                str = str.replace(new RegExp(this.remoteRegxStr[i], "ig"), function(i, m1) {
                     return self.remote(m1);
                 });
             }
@@ -108,7 +106,7 @@ Local.prototype = {
                     SSIList.push({
                         type: "mod",
                         path: tempPath,
-                        vars: tempData ? self.str2vars(tempData[1]) : {}
+                        vars: tempData ? self.str2vars(tempData[1].replace(/\\/g, '')) : {}
                     });
 
                     self.TREE[tempPath] = realPath;
@@ -168,6 +166,7 @@ Local.prototype = {
         var self = this,
             tempVar = new Object();
 
+        str = str.replace(/'/g, '"');
         str = str.replace(REGX.kv, function (i, m0, m1) {
             var arr = m1.split('.'), vars = self.vars;
             for (var i in arr) {

@@ -1,8 +1,8 @@
 {
   "name": "essi",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Enhanced SSI",
-  "main": "index.js",
+  "main": "essi.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
