@@ -1,28 +1,29 @@
 {
-  "name": "essi",
-  "version": "0.1.0",
-  "description": "Enhanced SSI",
-  "main": "essi.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "ssi",
-    "remote",
-    "fetch"
-  ],
-  "repository": {
-    "type": "git",
-    "url" : "https://github.com/Clamjs/essi.git"
-  },
-  "author": "limingv5",
-  "license": "ISC",
-  "dependencies": {
-    "juicer": "^0.6.5-stable-p2",
-    "mime": "^1.2.11",
-    "underscore": "^1.6.0",
-    "fetch": "^0.3.6",
-    "merge": "^1.1.3",
-    "debug.log":"^0.0.3"
-  }
+    "name": "essi",
+    "version": "0.1.0",
+    "description": "Enhanced SSI",
+    "main": "essi.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "ssi",
+        "remote",
+        "fetch"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Clamjs/essi.git"
+    },
+    "author": "limingv5",
+    "license": "ISC",
+    "dependencies": {
+        "juicer": "~0.6.6-stable",
+        "mime": "~1.2.11",
+        "underscore": "~1.6.0",
+        "fetch": "~0.3.6",
+        "merge": "~1.2.0",
+        "debug.log": "~0.0.3",
+        "readyconf": "~0.0.3"
+    }
 }

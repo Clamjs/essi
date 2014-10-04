@@ -1,28 +1,31 @@
-var ESSI     = require("./essi");
-var Feloader = require("./lib/assets");
-var pathLib  = require("path");
-var RC = require("readyconf");
+var ESSI = require("./essi");
+var AssetsTool = require("./lib/assetsTool");
+var pathLib = require("path");
+var readyconf = require("readyconf");
+var delog = require("debug.log");
 
-module.exports = function(dir) {
+module.exports = function (dir) {
     var param = {
-        target:"src",
-        replaces:{},
-        virtual:{},
+        target: "src",
+        replaces: {},
+        virtual: {},
         remote: [
             "<!--\\s{0,}HTTP\\s{0,}:\\s{0,}(.+),.+[^->]*?-->",
             "<!--\\s{0,}#include[^->]*?tms\\s{0,}=\\s{0,}[\"']\\s{0,}([^#\"']*?)\\s{0,}[\"'][^->]*?-->"
         ],
-        token:"fe-move",
-        head:"head",
-        tail:"tail",
-        radical:false
+        token: "fe-move",
+        head: "head",
+        tail: "tail",
+        radical: false
     };
 
-    param = RC.init(pathLib.join(process.cwd(), dir, pathLib.basename(__dirname)+".json"), param);
+    param = readyconf.init(pathLib.join(process.cwd(), dir, pathLib.basename(__dirname) + ".json"), param);
 
     return function (next) {
+        delog.request(this.req.url);
+
         var realpath = ESSI.Helper.matchVirtual(this.req.url, param);
-        var todo = ESSI.preAction(this.req.url, realpath);
+        var todo = ESSI.Helper.preAction(this.req.url, realpath);
         if (todo.method) {
             this[todo.method].apply(this, todo.args);
         }
@@ -34,14 +37,16 @@ module.exports = function(dir) {
 
             var remote = new ESSI.Remote(content);
             var self = this;
-            remote.fetch(function(content) {
-                var feloader = new Feloader(param.token, param.head, param.tail);
-                //delog.response(this.req.url+"\n")
-                self.html(feloader.action(content, param.radical));
+            remote.fetch(function (content) {
+                var assetsTool = new AssetsTool(param.token, param.head, param.tail);
+                self.html(assetsTool.action(content, param.radical));
+
+                delog.response(self.req.url+"\n");
                 try {
                     next();
                 }
-                catch (e) {}
+                catch (e) {
+                }
             });
         }
     }
