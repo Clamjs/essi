@@ -12,17 +12,7 @@ var ESSI   = require("essi");
 var Helper = ESSI.Helper,
     Local  = ESSI.Local,
     Remote = ESSI.Remote;
-
-ESSI.preAction(url, realpath);
 ```
-
-# preAction METHOD
-To deal with the pre-transaction
-
-`Input:` Request URL `String`, Realpath `String`
-* The `realPath` argument is calculated by Helper.matchVirtual method
-`Output:` TODO `Object`
-* {method:`String`, args:`Array`}
 
 # Local MOD
 ```
@@ -81,3 +71,11 @@ Match the `virtual` path to the `real` path introduced by config
 * The options argument must involve two items of `rootdir` & `target`
 
 `Output:` matched path `String`
+
+## preAction
+To deal with the pre-transaction
+
+`Input:` Request URL `String`, Realpath `String`
+* The `realPath` argument is calculated by Helper.matchVirtual method
+`Output:` `Object`
+* {method:`String`, args:`Array`}
