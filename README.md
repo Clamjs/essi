@@ -16,11 +16,11 @@ var Helper = ESSI.Helper,
 
 # Local MOD
 ```
-var local = new Local("requestURL", options);
+var local = new Local("requestURL", "root", [{virtualPath}], [[remoteRegx]]);
 local.fetch("realPath", vars);
 ```
 * The `realPath` argument is calculated by Helper.matchVirtual method
-* The `options` argument must involve four items of `rootdir`, `target`, `virtual` & `mod`. The `remoteRegx` item is optional, which is a regx array
+* The `remoteRegx` item is optional, which is a regx array
 * The `vars` argument is the data transfer to template, which is optional
 
 The template HTML string with the special Syntax:
@@ -67,9 +67,7 @@ Replace the custom defined `MARK` using JSON Map
 ## matchVirtual
 Match the `virtual` path to the `real` path introduced by config
 
-`Input:` request url `String`, options `Object`
-* The options argument must involve two items of `rootdir` & `target`
-
+`Input:` request url `String`, root `String`, virtual `String`
 `Output:` matched path `String`
 
 ## preAction

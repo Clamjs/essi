@@ -34,21 +34,21 @@ module.exports = function (confdir, highParam) {
 
         isOuterAssets && delog.request(this.req.url);
 
-        var realpath = ESSI.Helper.matchVirtual(_url, param);
+        var realpath = ESSI.Helper.matchVirtual(_url, param.root, param.virtual);
         var todo = ESSI.Helper.preAction(realpath);
         if (todo.method) {
             isOuterAssets && delog[todo.log](todo.content+"\n");
             this[todo.method].apply(this, todo.args);
         }
         else {
-            var local = new ESSI.Local(_url, param);
+            var local = new ESSI.Local(_url, param.root, param.virtual, param.remote);
             var content = local.fetch(realpath);
 
             // 替换用户定义标记，支持正则
             content = ESSI.Helper.customReplace(content, param.replaces);
 
             // 抓取远程页面
-            var remote = new ESSI.Remote(content);
+            var remote = new ESSI.Remote(content, param.hosts);
             var self = this;
             remote.fetch(function (content) {
                 var assetsTool = new AssetsTool(param.token, param.head, param.tail);
