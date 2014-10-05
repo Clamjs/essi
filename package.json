@@ -1,6 +1,6 @@
 {
     "name": "essi",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Enhanced SSI",
     "main": "essi.js",
     "scripts": {
@@ -18,12 +18,15 @@
     "author": "limingv5",
     "license": "ISC",
     "dependencies": {
+        "iconv-lite": "~0.4.0",
+        "is-utf8": "~0.2.0",
+        "crypto": "~0.0.3",
         "juicer": "~0.6.6-stable",
         "mime": "~1.2.11",
-        "underscore": "~1.6.0",
         "fetch": "~0.3.6",
         "merge": "~1.2.0",
+        "mkdirp": "~0.5.0",
         "debug.log": "~0.0.3",
-        "readyconf": "~0.0.3"
+        "readyconf": "~0.0.4"
     }
 }

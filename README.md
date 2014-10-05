@@ -75,7 +75,7 @@ Match the `virtual` path to the `real` path introduced by config
 ## preAction
 To deal with the pre-transaction
 
-`Input:` Request URL `String`, Realpath `String`
+`Input:` Realpath `String`
 * The `realPath` argument is calculated by Helper.matchVirtual method
 `Output:` `Object`
 * {method:`String`, args:`Array`}
