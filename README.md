@@ -30,13 +30,14 @@ The template HTML string with the special Syntax:
 
 # Remote MOD
 ```
-var remote = new Remote("content");
+var remote = new Remote("content", [{hosts}]);
 remote.fetch(callback);
 ```
 The `content` argument is usually a HTML string with the special Syntax:
 ```
 <!--#remote url="REMOTE URL"-->
 ```
+The `hosts` argument is a map of host with IP
 
 # Helper MOD
 
@@ -55,11 +56,11 @@ Check if path point to assets `!`(`NULL` OR `Directory` OR `HTML`)
 ## customReplace
 Replace the custom defined `MARK` using JSON Map
 
-`Input:` content `String`, map `Object`
+`Input:` content `String`, map `Object`(Regx)
 ```
 {
-    "$MARK1$":"hello world",
-    "$MARK2$":"ju.taobao.com"
+    "\\$MARK1\\$":"hello world",
+    "\\$(MARK2)\\$":"$1Hello World"
 }
 ```
 `Output:` content `String`
