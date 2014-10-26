@@ -6,7 +6,7 @@ var iconv = require("iconv-lite");
 var merge = require("merge");
 
 var param = {
-    root: "src",
+    rootdir: "src",
     charset: "utf-8",
     replaces: {},
     virtual: {},
@@ -16,7 +16,7 @@ var param = {
     ]
 };
 
-module.exports = function (highParam) {
+exports = module.exports = function (highParam) {
     if (highParam) {
         param = merge.recursive(param, highParam);
     }
@@ -25,16 +25,18 @@ module.exports = function (highParam) {
         var _url = urlLib.parse(this.req.url).pathname;
         var isOuterAssets = !_url.match(/^\/_virtual/);
 
+        console.log(param);
+
         isOuterAssets && delog.request(this.req.url);
 
-        var realpath = ESSI.Helper.matchVirtual(_url, param.root, param.virtual);
+        var realpath = ESSI.Helper.matchVirtual(_url, param.rootdir, param.virtual);
         var todo = ESSI.Helper.preAction(realpath);
         if (todo.method) {
             isOuterAssets && delog[todo.log](todo.content+"\n");
             this[todo.method].apply(this, todo.args);
         }
         else {
-            var local = new ESSI.Local(_url, param.root, param.virtual, param.remote);
+            var local = new ESSI.Local(_url, param.rootdir, param.virtual, param.remote);
             var content = local.fetch(realpath);
 
             // 替换用户定义标记，支持正则
