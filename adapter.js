@@ -1,28 +1,22 @@
-var pathLib = require("path");
 var urlLib = require("url");
 var ESSI = require("./essi");
 var AssetsTool = require("./lib/assetsTool");
 var delog = require("debug.log");
 var iconv = require("iconv-lite");
-var readyconf = require("readyconf");
-var merge = readyconf.merge;
+var merge = require("merge");
+
+var param = {
+    root: "src",
+    charset: "utf-8",
+    replaces: {},
+    virtual: {},
+    remote: [
+        "<!--\\s{0,}HTTP\\s{0,}(:)\\s{0,}(.+),.+[^->]*?-->",
+        "<!--\\s{0,}#include[^->]*?tms\\s{0,}=\\s{0,}([\"'])\\s{0,}([^#\"']*?)\\s{0,}\\1[^->]*?-->"
+    ]
+};
 
 module.exports = function (highParam) {
-    var param = {
-        root: "src",
-        charset: "utf-8",
-        replaces: {},
-        virtual: {},
-        remote: [
-            "<!--\\s{0,}HTTP\\s{0,}(:)\\s{0,}(.+),.+[^->]*?-->",
-            "<!--\\s{0,}#include[^->]*?tms\\s{0,}=\\s{0,}([\"'])\\s{0,}([^#\"']*?)\\s{0,}\\1[^->]*?-->"
-        ],
-        token: "fe-move",
-        head: "head",
-        tail: "tail",
-        radical: false
-    };
-
     if (highParam) {
         param = merge.recursive(param, highParam);
     }
@@ -50,8 +44,8 @@ module.exports = function (highParam) {
             var remote = new ESSI.Remote(content, param.hosts);
             var self = this;
             remote.fetch(function (content) {
-                var assetsTool = new AssetsTool(param.token, param.head, param.tail);
-                content = iconv.encode(assetsTool.action(content, param.radical), param.charset);
+                var assetsTool = new AssetsTool();
+                content = iconv.encode(assetsTool.action(content, false), param.charset);
 
                 // TODO assetsTool
                 self.html(content, param.charset);
@@ -66,19 +60,8 @@ module.exports = function (highParam) {
         }
     }
 
-}
+};
 
-// exports = module.exports = function (options) {
-//     exports.config(options);
-
-//     return function (req, res, next) {
-//         var options = exports.options;
-//     }
-// }
-// exports.config = function (options) {
-//     exports.options = util.merge(exports.options, options);
-// }
-// exports.options = {
-//     'rootdir': '/abc',
-//     'xxx':1
-// };
+exports.config = function (options) {
+    param = merge.recursive(param, options);
+};
