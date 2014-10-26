@@ -7,7 +7,7 @@ var iconv = require("iconv-lite");
 var readyconf = require("readyconf");
 var merge = readyconf.merge;
 
-module.exports = function (confdir, highParam) {
+module.exports = function (highParam) {
     var param = {
         root: "src",
         charset: "utf-8",
@@ -23,12 +23,11 @@ module.exports = function (confdir, highParam) {
         radical: false
     };
 
-    param = readyconf.init(pathLib.join(process.cwd(), confdir, pathLib.basename(__dirname) + ".json"), param);
     if (highParam) {
         param = merge.recursive(param, highParam);
     }
 
-    return function (next) {
+    return function (req, res, next) {
         var _url = urlLib.parse(this.req.url).pathname;
         var isOuterAssets = !_url.match(/^\/_virtual/);
 
@@ -68,3 +67,18 @@ module.exports = function (confdir, highParam) {
     }
 
 }
+
+// exports = module.exports = function (options) {
+//     exports.config(options);
+
+//     return function (req, res, next) {
+//         var options = exports.options;
+//     }
+// }
+// exports.config = function (options) {
+//     exports.options = util.merge(exports.options, options);
+// }
+// exports.options = {
+//     'rootdir': '/abc',
+//     'xxx':1
+// };
