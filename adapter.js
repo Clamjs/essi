@@ -25,8 +25,6 @@ exports = module.exports = function (highParam) {
         var _url = urlLib.parse(this.req.url).pathname;
         var isOuterAssets = !_url.match(/^\/_virtual/);
 
-        console.log(param);
-
         isOuterAssets && delog.request(this.req.url);
 
         var realpath = ESSI.Helper.matchVirtual(_url, param.rootdir, param.virtual);
