@@ -20,13 +20,10 @@
     "dependencies": {
         "iconv-lite": "~0.4.0",
         "is-utf8": "~0.2.0",
-        "crypto": "~0.0.3",
         "juicer": "~0.6.6-stable",
         "mime": "~1.2.11",
         "fetch": "~0.3.6",
-        "merge": "~1.2.0",
-        "mkdirp": "~0.5.0",
-        "debug.log": "~0.0.3",
-        "readyconf": "~0.0.4"
+        "mace": "~2.0.0",
+        "debug.log": "~0.0.3"
     }
 }

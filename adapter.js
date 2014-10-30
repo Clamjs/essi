@@ -3,7 +3,7 @@ var ESSI = require("./essi");
 var AssetsTool = require("./lib/assetsTool");
 var delog = require("debug.log");
 var iconv = require("iconv-lite");
-var merge = require("merge");
+var mace = require("mace");
 
 var param = {
     rootdir: "src",
@@ -18,14 +18,14 @@ var param = {
 
 exports = module.exports = function (highParam) {
     if (highParam) {
-        param = merge.recursive(param, highParam);
+        param = mace.merge(true, param, highParam);
     }
 
     return function (req, res, next) {
-        var _url = urlLib.parse(this.req.url).pathname;
+        var _url = urlLib.parse(req.url).pathname;
         var isOuterAssets = !_url.match(/^\/_virtual/);
 
-        isOuterAssets && delog.request(this.req.url);
+        isOuterAssets && delog.request(req.url);
 
         var realpath = ESSI.Helper.matchVirtual(_url, param.rootdir, param.virtual);
         var todo = ESSI.Helper.preAction(realpath);
@@ -63,5 +63,5 @@ exports = module.exports = function (highParam) {
 };
 
 exports.config = function (options) {
-    param = merge.recursive(param, options);
+    param = mace.merge(true, param, options);
 };
