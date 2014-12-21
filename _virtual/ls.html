@@ -2,10 +2,18 @@
 <html>
 <head>
     <base href="/" />
-    <title>${rel}</title>
-    <link type="text/css" rel="stylesheet" href="_virtual/css/ls.css" />
+    <title>{@if rel}${rel}{@else}/{@/if}</title>
+    <style type="text/css">
+      body {
+        font-size: 16px;
+      }
+      li {
+        padding: 2px 0;
+      }
+    </style>
 </head>
 <body>
+<h1>DIR: {@if rel}${rel}{@else}/{@/if}</h1>
 <ul>
 {@if rel}
     <li><a href="${rel}/../">..</a></li>

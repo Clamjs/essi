@@ -1,8 +1,8 @@
 {
     "name": "essi",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "Enhanced SSI",
-    "main": "essi.js",
+    "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -23,7 +23,6 @@
         "juicer": "~0.6.6-stable",
         "mime": "~1.2.11",
         "fetch": "~0.3.6",
-        "mace": "~2.0.0",
-        "debug.log": "~0.0.3"
+        "mace": "~2.0.0"
     }
 }
