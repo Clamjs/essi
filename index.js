@@ -3,8 +3,14 @@
  * 通过require("essi")
  * */
 var ESSI = require("./api");
+var pathLib = require("path");
 
-exports = module.exports = function (param, dir) {
+module.exports = function (param, dir) {
+  if (!dir) {
+    var userHome = process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH; // 兼容Windows
+    dir = pathLib.join(userHome, ".essi");
+  }
+
   var essiInst;
 
   return function () {
