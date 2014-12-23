@@ -58,6 +58,11 @@ ESSI.prototype = {
       var assetsTool = new AssetsTool();
       content = assetsTool.action(content, false);
 
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": '*',
+        "Content-Type": "text/html; charset=" + self.param.charset,
+        "X-MiddleWare": "essi"
+      });
       res.write(Helper.encode(content, self.param.charset));
       res.end();
 
