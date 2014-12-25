@@ -13,16 +13,18 @@ var Helper = require("./lib/helper");
 function ESSI(param, dir) {
   var moduleName = pathLib.basename(__dirname);
 
-  this.param = require("./lib/param");
-
   this.confFile = pathLib.join(process.cwd(), dir || ('.' + moduleName), moduleName + ".json");
 
   var confDir = pathLib.dirname(this.confFile);
   if (!fsLib.existsSync(confDir)) {
-    Helper.mkdirPSync(confDir);
+    utilLib.mkdirPSync(confDir);
   }
 
-  if (!fsLib.existsSync(this.confFile)) {
+  if (fsLib.existsSync(this.confFile)) {
+    this.param = {};
+  }
+  else {
+    this.param = require("./lib/param");
     fsLib.writeFileSync(this.confFile, JSON.stringify(this.param, null, 2), {encoding: "utf-8"});
   }
 
@@ -39,10 +41,7 @@ ESSI.prototype = {
   config: function (param) {
     this.param = Helper.merge(true, this.param, param || {});
   },
-  handle: function(req, res, next) {
-    var _url = urlLib.parse(req.url).pathname;
-    Helper.Log.request(req.url);
-
+  compile: function (_url, cb) {
     var realpath = Helper.matchVirtual(_url, this.param.rootdir, this.param.virtual);
     var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
     var content = local.fetch(realpath);
@@ -58,12 +57,24 @@ ESSI.prototype = {
       var assetsTool = new AssetsTool();
       content = assetsTool.action(content, false);
 
+      // convert
+      content = Helper.encode(content, self.param.charset);
+
+      return cb(content);
+    });
+  },
+  handle: function(req, res, next) {
+    var _url = urlLib.parse(req.url).pathname;
+    Helper.Log.request(req.url);
+
+    var self = this;
+    this.compile(_url, function(content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
         "Content-Type": "text/html; charset=" + self.param.charset,
         "X-MiddleWare": "essi"
       });
-      res.write(Helper.encode(content, self.param.charset));
+      res.write(content);
       res.end();
 
       Helper.Log.response(req.url+"\n");

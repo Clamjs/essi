@@ -5,7 +5,7 @@
 var ESSI = require("./api");
 var pathLib = require("path");
 
-module.exports = function (param, dir) {
+exports = module.exports = function (param, dir) {
   if (!dir) {
     var userHome = process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH; // 兼容Windows
     dir = pathLib.join(userHome, ".essi");
@@ -46,4 +46,40 @@ module.exports = function (param, dir) {
       next();
     }
   }
+};
+
+exports.gulp = function(param, dir, type, regx) {
+  var through = require("through2");
+
+  var REGX = {
+    elements: /<link[^>]*?rel\s{0,}=\s{0,}(["'])\s{0,}(import)\s{0,}\1[^>]*?>/gi,
+    demo: /<html[^>]*?>([\s\S]*?)<\/html>/gi
+  };
+
+  return through.obj(function (file, enc, cb) {
+    var self = this;
+
+    if (file.isNull()) {
+      self.push(file);
+      return cb();
+    }
+
+    if (file.isStream()) {
+      self.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
+      return cb();
+    }
+
+    var essi = new ESSI(param, dir);
+    essi.compile(file.path.replace(new RegExp(".*\/"+param.rootdir+"(\/.+$)"), "$1"), function(content) {
+      var str = content.toString();
+      if (str.match(regx||REGX[type])) {
+        file.contents = content;
+        self.push(file);
+        cb();
+      }
+      else {
+        return cb();
+      }
+    });
+  });
 };
