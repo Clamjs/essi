@@ -55,7 +55,7 @@ ESSI.prototype = {
     remote.fetch(function (content) {
       // TODO AssetsTool
       var assetsTool = new AssetsTool();
-      content = assetsTool.action(content, false);
+      content = assetsTool.action(content, self.param.cdnPath, false);
 
       // convert
       content = Helper.encode(content, self.param.charset);
