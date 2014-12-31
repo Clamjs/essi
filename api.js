@@ -46,7 +46,7 @@ ESSI.prototype = {
     var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
     var content = local.fetch(realpath);
 
-    // 替换用户定义标记，支持正则
+    // 替换用户定义标记，支持正则，抓取远程[前]
     content = Helper.customReplace(content, this.param.replaces);
 
     // 抓取远程页面
@@ -54,8 +54,11 @@ ESSI.prototype = {
     var remote = new Remote(content, this.cacheDir, this.param.hosts);
     remote.fetch(function (content) {
       // TODO AssetsTool
-      var assetsTool = new AssetsTool();
-      content = assetsTool.action(content, self.param.cdnPath, false);
+      var assetsTool = new AssetsTool(realpath, self.param.rootdir, self.param.cdnPath);
+      content = assetsTool.action(content, false);
+
+      // 替换用户定义标记，支持正则，抓取远程[后]
+      content = Helper.customReplace(content, self.param.replaces);
 
       // convert
       content = Helper.encode(content, self.param.charset);
