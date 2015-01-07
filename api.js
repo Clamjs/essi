@@ -38,16 +38,18 @@ function ESSI(param, dir) {
 };
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (_url, cdnPath, content, cb) {
+  compile: function (_url, opt, cb) {
     var realpath = Helper.matchVirtual(_url, this.param.rootdir, this.param.virtual);
 
+    var content = opt.content;
     if (!content) {
       var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
       content = local.fetch(realpath);
     }
 
+    var cdnPath = opt.cdnPath;
     if (typeof cdnPath != "string" && !cdnPath) {
-      cdnPath = this.param.cdnPath
+      cdnPath = this.param.cdnPath;
     }
 
     // 替换用户定义标记，支持正则，抓取远程[前]
@@ -59,7 +61,7 @@ ESSI.prototype = {
     remote.fetch(function (content) {
       // TODO AssetsTool
       var assetsTool = new AssetsTool(realpath, self.param.rootdir, cdnPath);
-      content = assetsTool.action(content, false);
+      content = assetsTool.action(content, opt, false);
 
       // 替换用户定义标记，支持正则，抓取远程[后]
       content = Helper.customReplace(content, self.param.replaces);
@@ -75,7 +77,10 @@ ESSI.prototype = {
     Helper.Log.request(req.url);
 
     var self = this;
-    this.compile(_url, null, null, function(content) {
+    this.compile(_url, {
+      cdnPath: null,
+      content: null
+    }, function(content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
         "Content-Type": "text/html; charset=" + self.param.charset,
