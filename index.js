@@ -48,38 +48,44 @@ exports = module.exports = function (param, dir) {
   }
 };
 
-exports.gulp = function(param, dir, type, regx) {
+exports.gulp = function(param, dir, opt) {
+  opt = opt||{};
   var through = require("through2");
-
-  var REGX = {
-    elements: /<link[^>]*?rel\s{0,}=\s{0,}(["'])\s{0,}(import)\s{0,}\1[^>]*?>/gi,
-    demo: /<html[^>]*?>([\s\S]*?)<\/html>/gi
-  };
 
   return through.obj(function (file, enc, cb) {
     var self = this;
 
     if (file.isNull()) {
-      self.push(file);
-      return cb();
+      self.emit('error', 'isNull');
+      cb(null, file);
+      return;
     }
 
     if (file.isStream()) {
-      self.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
-      return cb();
+      self.emit('error', 'Streaming not supported');
+      cb(null, file);
+      return;
     }
 
     var essi = new ESSI(param, dir);
-    essi.compile(file.path.replace(new RegExp(".*\/"+param.rootdir+"(\/.+$)"), "$1"), function(content) {
-      var str = content.toString();
-      if (str.match(regx||REGX[type])) {
-        file.contents = content;
-        self.push(file);
-        cb();
+    essi.compile(
+      file.path.replace(new RegExp(".*\/"+param.rootdir+"(\/.+$)"), "$1"),
+
+      (typeof opt.cdnPath == "undefined" ? null : opt.cdnPath),
+
+      ((typeof opt.engine == "undefined" || opt.engine) ? null : file.contents.toString()),
+
+      function(content) {
+        var str = content.toString();
+        if (!opt.fullPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
+          file.contents = content;
+          self.push(file);
+          cb();
+        }
+        else {
+          return cb();
+        }
       }
-      else {
-        return cb();
-      }
-    });
+    );
   });
 };

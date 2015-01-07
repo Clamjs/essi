@@ -17,7 +17,7 @@ function ESSI(param, dir) {
 
   var confDir = pathLib.dirname(this.confFile);
   if (!fsLib.existsSync(confDir)) {
-    utilLib.mkdirPSync(confDir);
+    Helper.mkdirPSync(confDir);
   }
 
   if (fsLib.existsSync(this.confFile)) {
@@ -38,13 +38,17 @@ function ESSI(param, dir) {
 };
 ESSI.prototype = {
   constructor: ESSI,
-  config: function (param) {
-    this.param = Helper.merge(true, this.param, param || {});
-  },
-  compile: function (_url, cb) {
+  compile: function (_url, cdnPath, content, cb) {
     var realpath = Helper.matchVirtual(_url, this.param.rootdir, this.param.virtual);
-    var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
-    var content = local.fetch(realpath);
+
+    if (!content) {
+      var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
+      content = local.fetch(realpath);
+    }
+
+    if (typeof cdnPath != "string" && !cdnPath) {
+      cdnPath = this.param.cdnPath
+    }
 
     // 替换用户定义标记，支持正则，抓取远程[前]
     content = Helper.customReplace(content, this.param.replaces);
@@ -54,7 +58,7 @@ ESSI.prototype = {
     var remote = new Remote(content, this.cacheDir, this.param.hosts);
     remote.fetch(function (content) {
       // TODO AssetsTool
-      var assetsTool = new AssetsTool(realpath, self.param.rootdir, self.param.cdnPath);
+      var assetsTool = new AssetsTool(realpath, self.param.rootdir, cdnPath);
       content = assetsTool.action(content, false);
 
       // 替换用户定义标记，支持正则，抓取远程[后]
@@ -71,7 +75,7 @@ ESSI.prototype = {
     Helper.Log.request(req.url);
 
     var self = this;
-    this.compile(_url, function(content) {
+    this.compile(_url, null, null, function(content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
         "Content-Type": "text/html; charset=" + self.param.charset,
