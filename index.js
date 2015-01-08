@@ -48,8 +48,7 @@ exports = module.exports = function (param, dir) {
   }
 };
 
-exports.gulp = function(param, dir, opt) {
-  opt = opt||{};
+exports.gulp = function(param, dir) {
   var through = require("through2");
 
   return through.obj(function (file, enc, cb) {
@@ -67,17 +66,13 @@ exports.gulp = function(param, dir, opt) {
       return;
     }
 
-    opt.cdnPath = typeof opt.cdnPath == "undefined" ? null : opt.cdnPath;
-    opt.content = (typeof opt.engine == "undefined" || opt.engine) ? null : file.contents.toString();
-    delete opt.engine;
-
     var essi = new ESSI(param, dir);
     essi.compile(
-      file.path.replace(new RegExp(".*\/"+param.rootdir+"(\/.+$)"), "$1"),
-      opt,
+      file.path.replace(new RegExp(".*\/"+essi.param.rootdir+"(\/.+$)"), "$1"),
+      (typeof param.engine == "undefined" || param.engine) ? null : file.contents.toString(),
       function(content) {
         var str = content.toString();
-        if (!opt.fullPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
+        if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
           file.contents = content;
           self.push(file);
           cb();

@@ -1,80 +1,78 @@
 # Introduction
-## Install
+
+`Server Side Include` enables to include pages in server side before responding HTTP request.
+
+`ESSI` means Enhanced SSI, it supports parsing the custom SSI syntax.
+
+
+# ESSI syntax
+Include
+
+	<!--#include file="path/to/foo.html"-->
+	
+	<!--#include file="path/to/foo.html" data='{"foo":"bar"}'-->
+	
+EachInclude
+
+	<!--#eachInclude file="path/to/item.html" itemVOs as item-->
+
+TMS
+
+	fetch from TMS:
+	<!--#include file="path/to/foo.html" tms="http://foo.com/path/to/bar.html" site="1"-->
+	
+	fetch from Local:
+	<!--#include file="path/to/foo.html" tms="#http://foo.com/path/to/bar.html" site="1"-->
+
+AWP
+
+	<!--HTTP:http://foo.com/path/to/bar.html,utf-8:HTTP-->
+	
+Remote
+
+	<!--#remote url="http://foo.com/path/to/bar.html"-->
+
+# Invoke
 ```
 npm install essi
 ```
 
-## Invoke
-```
-var ESSI   = require("essi");
+## Arguments
 
-// SSI include three SUB-MOD: Local, Remote, Helper and a preAction static method
-var Helper = ESSI.Helper,
-    Local  = ESSI.Local,
-    Remote = ESSI.Remote;
-```
-
-# Local MOD
-```
-var local = new Local("requestURL", "root", [{virtualPath}], [[remoteRegx]]);
-local.fetch("realPath", vars);
-```
-* The `realPath` argument is calculated by Helper.matchVirtual method
-* The `remoteRegx` item is optional, which is a regx array
-* The `vars` argument is the data transfer to template, which is optional
-
-The template HTML string with the special Syntax:
-```
-<!--#include file="LOCAL_PATH" data='{"key":value,...}'-->
-```
-
-# Remote MOD
-```
-var remote = new Remote("content", [{hosts}]);
-remote.fetch(callback);
-```
-The `content` argument is usually a HTML string with the special Syntax:
-```
-<!--#remote url="REMOTE URL"-->
-```
-The `hosts` argument is a map of host with IP
-
-# Helper MOD
-
-## isExists
-Check if fs.existsSync
-
-`Input:` File Path `String`
-`Output:` `Boolen`
-
-## isAssets
-Check if path point to assets `!`(`NULL` OR `Directory` OR `HTML`)
-
-`Input:` File Path `String`
-`Output:` `Boolen`
-
-## customReplace
-Replace the custom defined `MARK` using JSON Map
-
-`Input:` content `String`, map `Object`(Regx)
+### param
 ```
 {
-    "\\$MARK1\\$":"hello world",
-    "\\$(MARK2)\\$":"$1Hello World"
+  rootdir: "src",					// 根目录
+  charset: "utf-8",					// 编码
+  replaces: {},						// 变量替换
+  cdnPath: "http://127.0.0.1/",		// assets地址补全
+  min: true,						// assets地址加min处理开关
+  css: ".min.css",
+  js: ".min.js",
+  engine: true,						// 是否要用自带引擎，没有特殊需求一般为true
+  strictPage: false,				// 是否只输出严格完整的页面，不输出HTML片段
+  remote: {
+    "<!--\\s{0,}HTTP\\s{0,}:\\s{0,}(.+),.+[^->]*?-->":"$1",
+    "<!--\\s{0,}#include[^->]*?tms\\s{0,}=\\s{0,}([\"'])\\s{0,}([^#\"']*?)\\s{0,}\\1[^->]*?-->":"$2"
+  },								// 自定义远程抓取URL提取的正则表达式
+  virtual: {},						// 虚拟目录挂载
+  hosts: {}							// 域名与IP的hosts对应
 }
 ```
-`Output:` content `String`
+### dir
+The DIR where puts the config file
 
-## matchVirtual
-Match the `virtual` path to the `real` path introduced by config
+## Use in server
 
-`Input:` request url `String`, root `String`, virtual `String`
-`Output:` matched path `String`
+As a middleware in `Express` or `KOA`
 
-## preAction
-To deal with the pre-transaction
+```
+app.use(require("essi")(param, dir))
+```
 
-`Input:` Realpath `String`
-* The `realPath` argument is calculated by Helper.matchVirtual method
-`Output:` `Object`
-* {method:`String`, args:`Array`}
+## Use in gulp
+
+```
+gulp.src("path/to/*")
+    .pipe(require("essi").gulp(param, dir))
+```
