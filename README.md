@@ -4,8 +4,8 @@
 
 `ESSI` means Enhanced SSI, it supports parsing the custom SSI syntax.
 
-
 # ESSI syntax
+
 Include
 
 	<!--#include file="path/to/foo.html"-->
@@ -33,6 +33,7 @@ Remote
 	<!--#remote url="http://foo.com/path/to/bar.html"-->
 
 # Invoke
+
 ```
 npm install essi
 ```
@@ -42,7 +43,8 @@ npm install essi
 As a middleware in `Express` or `KOA`
 
 ```
-app.use(require("essi")(param, dir))
+app
+  .use(require("essi")(param, dir))
 ```
 
 ## Use in gulp
@@ -50,8 +52,9 @@ app.use(require("essi")(param, dir))
 As a plugin in `gulp`
 
 ```
-gulp.src("path/to/*")
-    .pipe(require("essi").gulp(param, dir))
+gulp
+  .src("path/to/*")
+  .pipe(require("essi").gulp(param, dir))
 ```
 
 ## Arguments
@@ -62,8 +65,11 @@ gulp.src("path/to/*")
 {
   rootdir: "src",                 // 根目录
   charset: "utf-8",               // 编码
-  replaces: {},                   // 变量替换
-  cdnPath: "http://127.0.0.1/",   // assets地址补全
+  replaces: {
+    "__version__": "1.0.0",
+    "__name__": "boying"
+  },                              // 变量替换
+  cdnPath: "http://127.0.0.1/__version__",            // assets地址补全
   min: true,                      // assets地址加min处理开关
   css: ".min.css",
   js: ".min.js",
@@ -77,6 +83,7 @@ gulp.src("path/to/*")
   hosts: {}                       // 域名与IP的hosts对应
 }
 ```
+
 ### dir
 
 The DIR where puts the config file
