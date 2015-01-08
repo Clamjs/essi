@@ -68,7 +68,7 @@ exports.gulp = function(param, dir) {
 
     var essi = new ESSI(param, dir);
     essi.compile(
-      file.path.replace(new RegExp(".*\/"+essi.param.rootdir+"(\/.+$)"), "$1"),
+      file.path,
       (typeof param.engine == "undefined" || param.engine) ? null : file.contents.toString(),
       function(content) {
         var str = content.toString();

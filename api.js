@@ -1,4 +1,3 @@
-var urlLib = require("url");
 var pathLib = require("path");
 var fsLib = require("fs");
 
@@ -38,43 +37,58 @@ function ESSI(param, dir) {
 };
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (_url, content, cb) {
-    var realpath = Helper.matchVirtual(_url, this.param.rootdir, this.param.virtual);
+  compile: function (realpath, content, cb) {
+    var assetsTool = new AssetsTool(realpath, this.param);
 
-    if (!content) {
-      var local = new Local(_url, this.param.rootdir, this.param.virtual, this.param.remote);
-      content = local.fetch(realpath);
-    }
-
-    // 替换用户定义标记，支持正则，抓取远程[前]
-    content = Helper.customReplace(content, this.param.replaces);
-
-    // 抓取远程页面
-    var self = this;
-    var remote = new Remote(content, this.cacheDir, this.param.hosts);
-    remote.fetch(function (content) {
-      // TODO AssetsTool
-      var assetsTool = new AssetsTool(realpath, self.param);
+    if (content) {
       content = assetsTool.action(content);
+      content = Helper.customReplace(content, this.param.replaces);
+      content = Helper.strip(content);
+      content = Helper.encode(content, this.param.charset);
+      cb(content);
+    }
+    else {
+      var local = new Local(realpath, this.param.rootdir, this.param.virtual, this.param.remote);
+      content = local.fetch();
 
-      // 替换用户定义标记，支持正则，抓取远程[后]
-      content = Helper.customReplace(content, self.param.replaces);
+      // 替换用户定义标记，支持正则，抓取远程[前]
+      content = Helper.customReplace(content, this.param.replaces);
 
-      // convert
-      content = Helper.encode(content, self.param.charset);
+      // 抓取远程页面
+      var self = this;
+      var remote = new Remote(content, this.cacheDir, this.param.hosts);
+      remote.fetch(function (content) {
+        content = assetsTool.action(content);
 
-      return cb(content);
-    });
+        // 替换用户定义标记，支持正则，抓取远程[后]
+        content = Helper.customReplace(content, self.param.replaces);
+        content = Helper.strip(content);
+
+        // convert
+        content = Helper.encode(content, self.param.charset);
+
+        cb(content);
+      });
+    }
   },
   handle: function(req, res, next) {
-    var _url = urlLib.parse(req.url).pathname;
     Helper.Log.request(req.url);
 
-    var self = this;
-    this.compile(_url, null, function(content) {
+    var charset  = this.param.charset;
+    var realpath = Helper.realPath(req.url, this.param.rootdir);
+    var content  = null;
+
+    if (
+      typeof this.param.engine != "undefined" && !this.param.engine &&      // 不用引擎
+      fsLib.existsSync(realpath) && fsLib.statSync(realpath).isFile()       // 是文件
+    ) {
+      content = Helper.readFileInUTF8(realpath);
+    }
+
+    this.compile(realpath, content, function(content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
-        "Content-Type": "text/html; charset=" + self.param.charset,
+        "Content-Type": "text/html; charset=" + charset,
         "X-MiddleWare": "essi"
       });
       res.write(content);

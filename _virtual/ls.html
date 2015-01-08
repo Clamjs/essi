@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <base href="/" />
     <title>{@if rel}${rel}{@else}/{@/if}</title>
     <style type="text/css">
       body {
@@ -16,19 +15,15 @@
 <h1>DIR: {@if rel}${rel}{@else}/{@/if}</h1>
 <ul>
 {@if rel}
-    <li><a href="${rel}/../">..</a></li>
+    <li><a href="../">..</a></li>
 {@/if}
 
 {@each dir as item}
-    <li><a class="dir" href="${rel}/${item}">${item}</a></li>
+    <li><a class="dir" href="${item}/">${item}</a></li>
 {@/each}
 
 {@each file as item}
-    <li><a class="file" href="${rel}/${item}">${item}</a></li>
-{@/each}
-
-{@each virtual as item}
-<li><a class="virtual" href="${rel}/${item}">${item}</a></li>
+    <li><a class="file" href="${item}">${item}</a></li>
 {@/each}
 </ul>
 </body>
