@@ -37,6 +37,21 @@ Remote
 npm install essi
 ```
 
+## Use in server
+
+As a middleware in `Express` or `KOA`
+
+```
+app.use(require("essi")(param, dir))
+```
+
+## Use in gulp
+
+```
+gulp.src("path/to/*")
+    .pipe(require("essi").gulp(param, dir))
+```
+
 ## Arguments
 
 ### param
@@ -61,18 +76,3 @@ npm install essi
 ```
 ### dir
 The DIR where puts the config file
-
-## Use in server
-
-As a middleware in `Express` or `KOA`
-
-```
-app.use(require("essi")(param, dir))
-```
-
-## Use in gulp
-
-```
-gulp.src("path/to/*")
-    .pipe(require("essi").gulp(param, dir))
-```
