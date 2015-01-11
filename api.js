@@ -30,7 +30,7 @@ function ESSI(param, dir) {
   var conf = JSON.parse(fsLib.readFileSync(this.confFile));
   this.param = Helper.merge(true, this.param, conf, param || {});
 
-  this.cacheDir = pathLib.join(confDir, "cache");
+  this.cacheDir = pathLib.join(confDir, "../.cache");
   if (!fsLib.existsSync(this.cacheDir)) {
     Helper.mkdirPSync(this.cacheDir);
   }
@@ -79,7 +79,7 @@ ESSI.prototype = {
     var content  = null;
 
     if (
-      typeof this.param.engine != "undefined" && !this.param.engine &&      // 不用引擎
+      typeof this.param.enable != "undefined" && !this.param.enable &&      // 不用引擎
       fsLib.existsSync(realpath) && fsLib.statSync(realpath).isFile()       // 是文件
     ) {
       content = Helper.readFileInUTF8(realpath);

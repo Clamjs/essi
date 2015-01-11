@@ -32,7 +32,7 @@ Remote
 
 	<!--#remote url="http://foo.com/path/to/bar.html"-->
 
-# Invoke
+# Install & Usage
 
 ```
 npm install essi
@@ -73,7 +73,7 @@ gulp
   min: true,                      // assets地址加min处理开关
   css: ".min.css",
   js: ".min.js",
-  engine: true,                   // 是否要用自带引擎，没有特殊需求一般为true
+  enable: true,                   // 是否要用自带引擎，没有特殊需求一般为true
   strictPage: false,              // 是否只输出严格完整的页面，不输出HTML片段
   remote: {
     "<!--\\s{0,}HTTP\\s{0,}:\\s{0,}(.+),.+[^->]*?-->":"$1",

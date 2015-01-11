@@ -69,7 +69,7 @@ exports.gulp = function(param, dir) {
     var essi = new ESSI(param, dir);
     essi.compile(
       file.path,
-      (typeof param.engine == "undefined" || param.engine) ? null : file.contents.toString(),
+      (typeof param.enable == "undefined" || param.enable) ? null : file.contents.toString(),
       function(content) {
         var str = content.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
