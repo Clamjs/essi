@@ -6,86 +6,99 @@ var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
 
-/**
- * ESSI类
- */
 function ESSI(param, dir) {
-  var moduleName = pathLib.basename(__dirname);
+  this.param = Helper.clone(require("./lib/param"));
+  this.cacheDir = null;
 
-  this.confFile = pathLib.join(process.cwd(), dir || ('.' + moduleName), moduleName + ".json");
+  if (dir) {
+    var confFile = pathLib.join(process.cwd(), dir || ".config", pathLib.basename(__dirname) + ".json");
+    var confDir = pathLib.dirname(confFile);
 
-  var confDir = pathLib.dirname(this.confFile);
-  if (!fsLib.existsSync(confDir)) {
-    Helper.mkdirPSync(confDir);
-  }
+    if (!fsLib.existsSync(confDir)) {
+      Helper.mkdirPSync(confDir);
+    }
 
-  if (fsLib.existsSync(this.confFile)) {
-    this.param = {};
+    if (!fsLib.existsSync(confFile)) {
+      fsLib.writeFileSync(confFile, JSON.stringify(this.param, null, 2), {encoding: "utf-8"});
+    }
+
+    var confJSON = {};
+    try {
+      confJSON = JSON.parse(fsLib.readFileSync(confFile));
+    }
+    catch (e) {
+      Helper.Log.error("Params Error!");
+      confJSON = {};
+    }
+
+    this.param = Helper.merge(true, this.param, confJSON, param || {});
+
+    this.cacheDir = pathLib.join(confDir, "../.cache");
+    if (!fsLib.existsSync(this.cacheDir)) {
+      Helper.mkdirPSync(this.cacheDir);
+    }
   }
   else {
-    this.param = require("./lib/param");
-    fsLib.writeFileSync(this.confFile, JSON.stringify(this.param, null, 2), {encoding: "utf-8"});
-  }
-
-  var conf = JSON.parse(fsLib.readFileSync(this.confFile));
-  this.param = Helper.merge(true, this.param, conf, param || {});
-
-  this.cacheDir = pathLib.join(confDir, "../.cache");
-  if (!fsLib.existsSync(this.cacheDir)) {
-    Helper.mkdirPSync(this.cacheDir);
+    this.param = Helper.merge(true, this.param, param || {});
   }
 };
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (realpath, content, cb) {
-    var assetsTool = new AssetsTool(realpath, this.param);
+  uniform: function (content, realpath, cb) {
+    if (!content) {
+      content = Helper.readFileInUTF8(realpath);
+    }
 
-    if (content) {
-      content = assetsTool.action(content);
-      content = Helper.customReplace(content, this.param.replaces);
-      content = Helper.strip(content);
-      content = Helper.encode(content, this.param.charset);
-      cb(content);
+    content = Helper.customReplace(content, this.param.replaces);
+
+    var assetsTool = new AssetsTool(realpath, this.param);
+    content = assetsTool.action(content);
+
+    content = Helper.customReplace(content, this.param.replaces);
+    content = Helper.strip(content);
+
+    cb(Helper.encode(content, this.param.charset));
+  },
+  compile: function (realpath, content, cb) {
+    var local = new Local(realpath, this.param.rootdir, this.param.remote);
+
+    // 保证content是String型，非Buffer
+    if (content && Buffer.isBuffer(content)) {
+      content = Helper.decode(content);
+    }
+
+    if (
+      typeof this.param.enable != "undefined" && !this.param.enable &&      // 引擎不生效
+      fsLib.existsSync(realpath) && fsLib.statSync(realpath).isFile()       // 是文件
+    ) {
+      this.uniform(content, realpath, cb);
     }
     else {
-      var local = new Local(realpath, this.param.rootdir, this.param.virtual, this.param.remote);
-      content = local.fetch();
+      if (content) {
+        content = local.parse(content);
+      }
+      else {
+        content = local.fetch();
+      }
 
-      // 替换用户定义标记，支持正则，抓取远程[前]
+      // 替换用户定义标记，支持正则（抓取远程前）
       content = Helper.customReplace(content, this.param.replaces);
 
       // 抓取远程页面
       var self = this;
       var remote = new Remote(content, this.cacheDir, this.param.hosts);
       remote.fetch(function (content) {
-        content = assetsTool.action(content);
-
-        // 替换用户定义标记，支持正则，抓取远程[后]
-        content = Helper.customReplace(content, self.param.replaces);
-        content = Helper.strip(content);
-
-        // convert
-        content = Helper.encode(content, self.param.charset);
-
-        cb(content);
+        self.uniform(content, realpath, cb);
       });
     }
   },
-  handle: function(req, res, next) {
+  handle: function (req, res, next) {
     Helper.Log.request(req.url);
 
-    var charset  = this.param.charset;
+    var charset = this.param.charset;
     var realpath = Helper.realPath(req.url, this.param.rootdir);
-    var content  = null;
 
-    if (
-      typeof this.param.enable != "undefined" && !this.param.enable &&      // 不用引擎
-      fsLib.existsSync(realpath) && fsLib.statSync(realpath).isFile()       // 是文件
-    ) {
-      content = Helper.readFileInUTF8(realpath);
-    }
-
-    this.compile(realpath, content, function(content) {
+    this.compile(realpath, null, function (content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
         "Content-Type": "text/html; charset=" + charset,
@@ -94,12 +107,14 @@ ESSI.prototype = {
       res.write(content);
       res.end();
 
-      Helper.Log.response(req.url+"\n");
+      Helper.Log.response(req.url + "\n");
 
       try {
         next();
       }
-      catch (e) {}
+      catch (e) {
+        console.log(e);
+      }
     });
   }
 };

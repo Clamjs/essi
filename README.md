@@ -6,31 +6,24 @@
 
 # ESSI syntax
 
-Include
+## Include
 
 	<!--#include file="path/to/foo.html"-->
 	
 	<!--#include file="path/to/foo.html" data='{"foo":"bar"}'-->
 	
-EachInclude
+## EachInclude
 
 	<!--#eachInclude file="path/to/item.html" itemVOs as item-->
 
-TMS
-
-	fetch from TMS:
-	<!--#include file="path/to/foo.html" tms="http://foo.com/path/to/bar.html" site="1"-->
-	
-	fetch from Local:
-	<!--#include file="path/to/foo.html" tms="#http://foo.com/path/to/bar.html" site="1"-->
-
-AWP
-
-	<!--HTTP:http://foo.com/path/to/bar.html,utf-8:HTTP-->
-	
-Remote
+## Remote
 
 	<!--#remote url="http://foo.com/path/to/bar.html"-->
+
+### Customize
+
+	set remote field in param
+
 
 # Install & Usage
 
@@ -66,23 +59,19 @@ gulp
   rootdir: "src",                 // 根目录
   charset: "utf-8",               // 编码
   replaces: {
-    "__version__": "1.0.0",
-    "__name__": "boying"
+    "_name_": "boying"
   },                              // 变量替换
-  cdnPath: "http://127.0.0.1/__version__",            // assets地址补全
-  min: true,                      // assets地址加min处理开关
+  cdnPath: "http://domain/",      // assets地址补全
+  version: "1.0.0",               // assets版本
   css: ".min.css",
   js: ".min.js",
   enable: true,                   // 是否要用自带引擎，没有特殊需求一般为true
   strictPage: false,              // 是否只输出严格完整的页面，不输出HTML片段
-  remote: {
-    "<!--\\s{0,}HTTP\\s{0,}:\\s{0,}(.+),.+[^->]*?-->":"$1",
-    "<!--\\s{0,}#include[^->]*?tms\\s{0,}=\\s{0,}([\"'])\\s{0,}([^#\"']*?)\\s{0,}\\1[^->]*?-->":"$2"
-  },                              // 自定义远程抓取URL提取的正则表达式
+  remote: {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   hosts: {}                       // 域名与IP的hosts对应
 }
 ```
 
-### dir
+### [dir]
 
 The DIR where puts the config file

@@ -8,8 +8,8 @@
   },
   "keywords": [
     "ssi",
-    "remote",
-    "fetch"
+    "include",
+    "remote"
   ],
   "repository": {
     "type": "git",

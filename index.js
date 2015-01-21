@@ -3,18 +3,10 @@
  * 通过require("essi")
  * */
 var ESSI = require("./api");
-var pathLib = require("path");
 
 exports = module.exports = function (param, dir) {
-  if (!dir) {
-    var userHome = process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH; // 兼容Windows
-    dir = pathLib.join(userHome, ".essi");
-  }
-
-  var essiInst;
-
   return function () {
-    essiInst = new ESSI(param, dir);
+    var essiInst = new ESSI(param, dir);
 
     var req, res, next;
     switch (arguments.length) {
@@ -43,37 +35,37 @@ exports = module.exports = function (param, dir) {
       }
     }
     catch (e) {
-      next();
+      console.log(e);
     }
   }
 };
 
-exports.gulp = function(param, dir) {
+exports.gulp = function (param, dir) {
   var through = require("through2");
 
   return through.obj(function (file, enc, cb) {
     var self = this;
 
     if (file.isNull()) {
-      self.emit('error', 'isNull');
+      self.emit("error", "isNull");
       cb(null, file);
       return;
     }
 
     if (file.isStream()) {
-      self.emit('error', 'Streaming not supported');
+      self.emit("error", "Streaming not supported");
       cb(null, file);
       return;
     }
 
-    var essi = new ESSI(param, dir);
-    essi.compile(
+    var essiInst = new ESSI(param, dir);
+    essiInst.compile(
       file.path,
-      (typeof param.enable == "undefined" || param.enable) ? null : file.contents.toString(),
-      function(content) {
-        var str = content.toString();
+      file.contents,
+      function(buff) {
+        var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
-          file.contents = content;
+          file.contents = buff;
           self.push(file);
           cb();
         }
