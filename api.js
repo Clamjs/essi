@@ -33,9 +33,11 @@ function ESSI(param, dir) {
 
     this.param = Helper.merge(true, this.param, confJSON, param || {});
 
-    this.cacheDir = pathLib.join(confDir, "../.cache");
-    if (!fsLib.existsSync(this.cacheDir)) {
-      Helper.mkdirPSync(this.cacheDir);
+    if (typeof this.param.cache == "undefined" || this.param.cache) {
+      this.cacheDir = pathLib.join(confDir, "../.cache");
+      if (!fsLib.existsSync(this.cacheDir)) {
+        Helper.mkdirPSync(this.cacheDir);
+      }
     }
   }
   else {
@@ -51,8 +53,8 @@ ESSI.prototype = {
 
     content = Helper.customReplace(content, this.param.replaces);
 
-    var assetsTool = new AssetsTool(realpath, this.param);
-    content = assetsTool.action(content);
+    var assetsTool = new AssetsTool(realpath, content, this.param);
+    content = assetsTool.action();
 
     content = Helper.customReplace(content, this.param.replaces);
     content = Helper.strip(content);
