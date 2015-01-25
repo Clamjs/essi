@@ -33,7 +33,7 @@ function ESSI(param, dir) {
 
     this.param = Helper.merge(true, this.param, confJSON, param || {});
 
-    if (typeof this.param.cache == "undefined" || this.param.cache) {
+    if (this.param.cache) {
       this.cacheDir = pathLib.join(confDir, "../.cache");
       if (!fsLib.existsSync(this.cacheDir)) {
         Helper.mkdirPSync(this.cacheDir);
