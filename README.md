@@ -1,8 +1,10 @@
 # Introduction
 
-`Server Side Include` enables to include pages in server side before responding HTTP request.
+> `Server Side Include` enables to include pages in server side before responding HTTP request.
 
-`ESSI` means Enhanced SSI, it supports parsing the custom SSI syntax.
+> `ESSI` means Enhanced SSI, it supports parsing the custom SSI syntax.
+
+> Besides, the template engine `Juicer` is integrated in `ESSI`.
 
 # ESSI syntax
 
@@ -23,6 +25,12 @@
 ### Customize
 
 	set remote field in param
+	
+## Juicer
+
+The template engine `Juicer` is integrated in `ESSI`.
+
+Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
 
 # Install & Usage
