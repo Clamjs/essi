@@ -8,23 +8,38 @@
 
 # ESSI syntax
 
+## Def
+
+Define Mock Data in template.
+
+```
+<!--#def
+{
+  "name": "ESSI"
+}
+-->
+```
+
 ## Include
+```
+<!--#include file="path/to/foo.html"-->
 
-	<!--#include file="path/to/foo.html"-->
-	
-	<!--#include file="path/to/foo.html" data='{"foo":"bar"}'-->
-	
+<!--#include file="path/to/foo.html" data='{"name":"${name}"}'-->
+```
+
 ## EachInclude
-
-	<!--#eachInclude file="path/to/item.html" itemVOs as item-->
+```
+<!--#eachInclude file="path/to/item.html" itemVOs as item-->
+```
 
 ## Remote
-
-	<!--#remote url="http://foo.com/path/to/bar.html"-->
+```
+<!--#remote url="http://foo.com/path/to/bar.html"-->
+```
 
 ### Customize
 
-	set remote field in param
+set remote field with RegExp in param
 	
 ## Juicer
 
@@ -64,20 +79,20 @@ gulp
 
 ```
 {
-  rootdir: "src",                 // 根目录
-  charset: "utf-8",               // 编码
-  replaces: {
+  "rootdir": "src",                 // 根目录
+  "charset": "utf-8",               // 编码
+  "replaces": {
     "_name_": "boying"
-  },                              // 变量替换
-  remote: {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
-  hosts: {},                      // 域名与IP的hosts对应
-  enable: true,                   // 是否要用自带引擎，没有特殊需求一般为true
-  cache: true,                    // 是否缓存远程抓取页面
-  cdnPath: "http://domain/",      // assets地址补全
-  version: "1.0.0",               // assets版本
-  css: ".min.css",
-  js: ".min.js",
-  strictPage: false               // 是否只输出严格完整的页面，不输出HTML片段
+  },                                // 变量替换
+  "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
+  "hosts": {},                      // 域名与IP的hosts对应
+  "enable": true,                   // 是否要用自带引擎，没有特殊需求一般为true
+  "cache": true,                    // 是否缓存远程抓取页面
+  "cdnPath": "http://domain/",      // assets地址补全
+  "version": "1.0.0",               // assets版本
+  "css": ".min.css",
+  "js": ".min.js",
+  "strictPage": false               // 是否只输出严格完整的页面，不输出HTML片段
 }
 ```
 
