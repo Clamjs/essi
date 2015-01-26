@@ -43,6 +43,8 @@ function ESSI(param, dir) {
   else {
     this.param = Helper.merge(true, this.param, param || {});
   }
+
+  this.param.traceRule = new RegExp(this.param.traceRule, 'i');
 };
 ESSI.prototype = {
   constructor: ESSI,
@@ -62,7 +64,7 @@ ESSI.prototype = {
     cb(Helper.encode(content, this.param.charset));
   },
   compile: function (realpath, content, cb) {
-    var local = new Local(realpath, this.param.rootdir, this.param.remote);
+    var local = new Local(realpath, this.param.rootdir, this.param.remote, this.param.traceRule);
 
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
@@ -88,28 +90,30 @@ ESSI.prototype = {
 
       // 抓取远程页面
       var self = this;
-      var remote = new Remote(content, this.cacheDir, this.param.hosts);
+      var remote = new Remote(content, this.cacheDir, this.param.hosts, this.param.traceRule);
       remote.fetch(function (content) {
         self.uniform(content, realpath, cb);
       });
     }
   },
   handle: function (req, res, next) {
-    Helper.Log.request(req.url);
+    if (("Request "+req.url).match(this.param.traceRule)) {
+      Helper.Log.request(req.url);
+    }
 
-    var charset = this.param.charset;
-    var realpath = Helper.realPath(req.url, this.param.rootdir);
-
-    this.compile(realpath, null, function (content) {
+    var self = this;
+    this.compile(Helper.realPath(req.url, this.param.rootdir), null, function (content) {
       res.writeHead(200, {
         "Access-Control-Allow-Origin": '*',
-        "Content-Type": "text/html; charset=" + charset,
+        "Content-Type": "text/html; charset=" + self.param.charset,
         "X-MiddleWare": "essi"
       });
       res.write(content);
       res.end();
 
-      Helper.Log.response(req.url + "\n");
+      if (("Response "+req.url).match(self.param.traceRule)) {
+        Helper.Log.response(req.url + "\n");
+      }
 
       try {
         next();

@@ -83,7 +83,7 @@ gulp
   "charset": "utf-8",               // 编码
   "replaces": {
     "_name_": "boying"
-  },                                // 变量替换
+  },                                // 变量替换（正则）
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
   "enable": true,                   // 是否要用自带引擎，没有特殊需求一般为true
@@ -92,7 +92,8 @@ gulp
   "version": "1.0.0",               // assets版本
   "css": ".min.css",
   "js": ".min.js",
-  "strictPage": false               // 是否只输出严格完整的页面，不输出HTML片段
+  "strictPage": false,              // 是否只输出严格完整的页面，不输出HTML片段
+  "traceRule": ""                   // 终端trace信息输出筛选规则（正则）
 }
 ```
 
