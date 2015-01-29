@@ -37,9 +37,9 @@ Define Mock Data in template.
 <!--#remote url="http://foo.com/path/to/bar.html"-->
 ```
 
-### Customize
+* Customize
 
-set remote field with RegExp in param
+  set remote field with RegExp in param
 	
 ## Juicer
 
@@ -47,6 +47,18 @@ The template engine `Juicer` is integrated in `ESSI`.
 
 Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
+## Assets
+
+> Using `fe-move` attribute in `<script>` or `<link>` tag,
+> attribute value could be `top` or `bottom`:
+
+```
+<script fe-move="top" type="text/javascript" src="path/to/file.js"></script>
+
+<link fe-move="bottom" rel="stylesheet" href="path/to/file.css" />
+```
+
+`ESSI` will make the Combo URL according to `fe-move` in build process.
 
 # Install & Usage
 
@@ -86,7 +98,7 @@ gulp
   },                                // 变量替换（正则）
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
-  "enable": true,                   // 是否要用自带引擎，没有特殊需求一般为true
+  "juicer": true,                   // 是否要用juicer引擎，没有特殊需求一般为true
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "version": "1.0.0",               // assets版本
