@@ -59,59 +59,72 @@ ESSI.prototype = {
       content = Helper.decode(content);
     }
 
-    var juicer = this.param.juicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
+    var isJuicer = this.param.juicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
     if (content) {
-      content = local.parse(content, juicer);
+      content = local.parse(content, isJuicer);
     }
     else {
-      content = local.fetch(juicer);
+      content = local.fetch(isJuicer);
     }
 
-    content = Helper.customReplace(content, this.param.replaces);
+    if (content === false) {
+      cb(302);
+    }
+    else {
+      content = Helper.customReplace(content, this.param.replaces);
 
-    // 抓取远程页面
-    var self = this;
-    var remote = new Remote(content, this.cacheDir, this.param.hosts, this.param.traceRule);
-    remote.fetch(function (content) {
-      if (!content) {
-        content = Helper.readFileInUTF8(realpath);
-      }
+      // 抓取远程页面
+      var self = this;
+      var remote = new Remote(content, this.cacheDir, this.param.hosts, this.param.traceRule);
+      remote.fetch(function (content) {
+        if (!content) {
+          content = Helper.readFileInUTF8(realpath);
+        }
 
-      content = Helper.customReplace(content, self.param.replaces);
+        content = Helper.customReplace(content, self.param.replaces);
 
-      var assetsTool = new AssetsTool(realpath, content, self.param);
-      content = assetsTool.action();
+        var assetsTool = new AssetsTool(realpath, content, self.param);
+        content = assetsTool.action();
 
-      content = Helper.customReplace(content, self.param.replaces);
-      content = Helper.strip(content);
+        content = Helper.customReplace(content, self.param.replaces);
+        content = Helper.strip(content);
 
-      cb(Helper.encode(content, self.param.charset));
-    });
+        cb(200, Helper.encode(content, self.param.charset));
+      });
+    }
   },
   handle: function (req, res, next) {
-    if (("Request "+req.url).match(this.param.traceRule)) {
+    if (("Request " + req.url).match(this.param.traceRule)) {
       Helper.Log.request(req.url);
     }
 
     var self = this;
-    this.compile(Helper.realPath(req.url, this.param.rootdir), null, function (content) {
-      res.writeHead(200, {
-        "Access-Control-Allow-Origin": '*',
-        "Content-Type": "text/html; charset=" + self.param.charset,
-        "X-MiddleWare": "essi"
-      });
-      res.write(content);
-      res.end();
+    this.compile(Helper.realPath(req.url, this.param.rootdir), null, function (code, content) {
+      if (code == 302) {
+        res.writeHead(302, {
+          "Location": req.url + '/'
+        });
+        res.end();
+      }
+      else {
+        res.writeHead(200, {
+          "Access-Control-Allow-Origin": '*',
+          "Content-Type": "text/html; charset=" + self.param.charset,
+          "X-MiddleWare": "essi"
+        });
+        res.write(content);
+        res.end();
 
-      if (("Response "+req.url).match(self.param.traceRule)) {
-        Helper.Log.response(req.url + "\n");
+        try {
+          next();
+        }
+        catch (e) {
+          console.log(e);
+        }
       }
 
-      try {
-        next();
-      }
-      catch (e) {
-        console.log(e);
+      if (("Response " + req.url).match(self.param.traceRule)) {
+        Helper.Log.response(req.url + " [Code] " + code + "\n");
       }
     });
   }
