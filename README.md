@@ -37,9 +37,9 @@ Define Mock Data in template.
 <!--#remote url="http://foo.com/path/to/bar.html"-->
 ```
 
-### Customize
+* Customize
 
-set remote field with RegExp in param
+  set remote field with RegExp in param
 	
 ## Juicer
 
@@ -47,6 +47,38 @@ The template engine `Juicer` is integrated in `ESSI`.
 
 Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
+## Assets
+
+> Using `fe-move` attribute in `<script>` or `<link>` tag,
+> attribute value could be `top` or `bottom`:
+
+```
+<script fe-move="top" type="text/javascript" src="path/to/file.js"></script>
+
+<link fe-move="bottom" rel="stylesheet" href="path/to/file.css" />
+```
+
+> Using `fe-group` attribute in `<script>` or `<link>` tag,
+> attribute value could be whatever you like
+
+```
+<script fe-group="groupname" type="text/javascript" src="path/to/file.js"></script>
+
+<link fe-group="groupname" rel="stylesheet" href="path/to/file.css" />
+```
+> `ESSI` will make the `Combo URL` according to `fe-move` and `fe-group` in build process.
+
+```
+<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file1.js"></script>
+<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file2.js"></script>
+<script fe-move="top" fe-group="group2" type="text/javascript" src="path/to/file3.js"></script>
+```
+	After Build Process, the script tags above will be converted to:
+
+```
+<script type="text/javascript" src="http://CDNPATH/version/path/to/??file1.js,file2.js"></script>
+<script type="text/javascript" src="http://CDNPATH/version/path/to/file3.js"></script>
+```
 
 # Install & Usage
 
@@ -86,7 +118,7 @@ gulp
   },                                // 变量替换（正则）
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
-  "enable": true,                   // 是否要用自带引擎，没有特殊需求一般为true
+  "juicer": true,                   // 是否要用juicer引擎，没有特殊需求一般为true
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "version": "1.0.0",               // assets版本
