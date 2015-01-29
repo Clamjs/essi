@@ -58,7 +58,27 @@ Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 <link fe-move="bottom" rel="stylesheet" href="path/to/file.css" />
 ```
 
-`ESSI` will make the Combo URL according to `fe-move` in build process.
+> Using `fe-group` attribute in `<script>` or `<link>` tag,
+> attribute value could be whatever you like
+
+```
+<script fe-group="groupname" type="text/javascript" src="path/to/file.js"></script>
+
+<link fe-group="groupname" rel="stylesheet" href="path/to/file.css" />
+```
+> `ESSI` will make the `Combo URL` according to `fe-move` and `fe-group` in build process.
+
+```
+<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file1.js"></script>
+<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file2.js"></script>
+<script fe-move="top" fe-group="group2" type="text/javascript" src="path/to/file3.js"></script>
+```
+	After Build Process, the script tags above will be converted to:
+
+```
+<script type="text/javascript" src="http://CDNPATH/version/path/to/??file1.js,file2.js"></script>
+<script type="text/javascript" src="http://CDNPATH/version/path/to/file3.js"></script>
+```
 
 # Install & Usage
 
