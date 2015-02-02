@@ -51,7 +51,7 @@ function ESSI(param, dir) {
 };
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (realpath, content, cb) {
+  compile: function (realpath, content, assetsFlag, cb) {
     var local = new Local(realpath, this.param.rootdir, this.param.remote, this.param.traceRule);
 
     // 保证content是String型，非Buffer
@@ -84,7 +84,7 @@ ESSI.prototype = {
         content = Helper.customReplace(content, self.param.replaces);
 
         var assetsTool = new AssetsTool(realpath, content, self.param);
-        content = assetsTool.action();
+        content = assetsTool.action(assetsFlag);
 
         content = Helper.customReplace(content, self.param.replaces);
         content = Helper.strip(content);
@@ -99,7 +99,7 @@ ESSI.prototype = {
     }
 
     var self = this;
-    this.compile(Helper.realPath(req.url, this.param.rootdir), null, function (code, content) {
+    this.compile(Helper.realPath(req.url, this.param.rootdir), null, false, function (code, content) {
       if (code == 302) {
         res.writeHead(302, {
           "Location": req.url + '/'
