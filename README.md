@@ -113,9 +113,9 @@ gulp
 {
   "rootdir": "src",                 // 根目录
   "charset": "utf-8",               // 编码
-  "replaces": {
+  "replaces": {                     // 变量替换（正则）
     "_name_": "boying"
-  },                                // 变量替换（正则）
+  },
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
   "juicer": true,                   // 是否要用juicer引擎，没有特殊需求一般为true
