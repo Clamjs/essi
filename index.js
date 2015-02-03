@@ -59,6 +59,7 @@ exports.gulp = function (param, dir) {
     }
 
     var essiInst = new ESSI(param, dir);
+    essiInst.param.traceRule = false;
     essiInst.compile(
       file.path,
       file.contents,
