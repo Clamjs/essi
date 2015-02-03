@@ -1,4 +1,5 @@
 var pathLib = require("path");
+var urlLib = require("url");
 var fsLib = require("fs");
 
 var Local = require("./lib/local");
@@ -94,15 +95,16 @@ ESSI.prototype = {
     }
   },
   handle: function (req, res, next) {
-    if (("Request " + req.url).match(this.param.traceRule)) {
-      Helper.Log.request(req.url);
+    var _url = urlLib.parse(req.url).pathname;
+    if (("Request " + _url).match(this.param.traceRule)) {
+      Helper.Log.request(_url);
     }
 
     var self = this;
-    this.compile(Helper.realPath(req.url, this.param.rootdir), null, false, function (code, content) {
+    this.compile(Helper.realPath(_url, this.param.rootdir), null, false, function (code, content) {
       if (code == 302) {
         res.writeHead(302, {
-          "Location": req.url + '/'
+          "Location": _url + '/'
         });
         res.end();
       }
@@ -123,8 +125,8 @@ ESSI.prototype = {
         }
       }
 
-      if (("Response " + req.url).match(self.param.traceRule)) {
-        Helper.Log.response(req.url + " [Code] " + code + "\n");
+      if (("Response " + _url).match(self.param.traceRule)) {
+        Helper.Log.response(_url + " [Code] " + code + "\n");
       }
     });
   }
