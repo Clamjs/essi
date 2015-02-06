@@ -1,6 +1,6 @@
 {
   "name": "essi",
-  "version": "0.5.12",
+  "version": "0.5.13",
   "description": "Enhanced SSI",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "dependencies": {
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
-    "juicer": "~0.6.6-stable",
+    "juicer": "~0.6.8-stable",
     "mace": "~2.0.0",
     "through2": "~0.6.3"
   }

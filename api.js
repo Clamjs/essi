@@ -53,7 +53,7 @@ function ESSI(param, dir) {
 ESSI.prototype = {
   constructor: ESSI,
   compile: function (realpath, content, assetsFlag, cb) {
-    var local = new Local(realpath, this.param.rootdir, this.param.remote, this.param.traceRule);
+    var local = new Local(realpath, this.param);
 
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
@@ -76,7 +76,7 @@ ESSI.prototype = {
 
       // 抓取远程页面
       var self = this;
-      var remote = new Remote(content, this.cacheDir, this.param.hosts, this.param.traceRule);
+      var remote = new Remote(content, this.param, this.cacheDir);
       remote.fetch(function (content) {
         if (!content) {
           content = Helper.readFileInUTF8(realpath);
