@@ -88,7 +88,6 @@ ESSI.prototype = {
         content = assetsTool.action(assetsFlag);
 
         content = Helper.customReplace(content, self.param.replaces);
-        content = Helper.strip(content);
 
         cb(200, Helper.encode(content, self.param.charset));
       });
