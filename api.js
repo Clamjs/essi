@@ -99,6 +99,8 @@ ESSI.prototype = {
       Helper.Log.request(_url);
     }
 
+    _url = Helper.filteredUrl(_url, this.param.filter, this.param.traceRule);
+
     var self = this;
     this.compile(Helper.realPath(_url, this.param.rootdir), null, false, function (code, content) {
       if (code == 302) {
