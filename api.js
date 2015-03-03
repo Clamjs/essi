@@ -61,7 +61,10 @@ ESSI.prototype = {
       content = Helper.decode(content);
     }
 
-    var isJuicer = this.param.juicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
+    var isJuicer = this.param.ignoreJuicer.every(function (i) {
+      return !new RegExp(i).test(realpath);
+    });
+    isJuicer = isJuicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
     if (content) {
       content = local.parse(content, isJuicer);
     }
