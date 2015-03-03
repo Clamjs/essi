@@ -1,6 +1,7 @@
 var pathLib = require("path");
 var urlLib = require("url");
 var fsLib = require("fs");
+var HTML = require("js-beautify").html;
 
 var Local = require("./lib/local");
 var Remote = require("./lib/remote");
@@ -75,22 +76,34 @@ ESSI.prototype = {
       content = Helper.customReplace(content, this.param.replaces);
 
       // 抓取远程页面
-      var self = this;
       var remote = new Remote(content, this.param, this.cacheDir);
       remote.fetch(function (content) {
         if (!content) {
           content = Helper.readFileInUTF8(realpath);
         }
 
-        content = Helper.customReplace(content, self.param.replaces);
+        content = Helper.customReplace(content, this.param.replaces);
 
-        var assetsTool = new AssetsTool(realpath, content, self.param);
+        var assetsTool = new AssetsTool(realpath, content, this.param);
         content = assetsTool.action(assetsFlag);
 
-        content = Helper.customReplace(content, self.param.replaces);
+        content = Helper.customReplace(content, this.param.replaces);
 
-        cb(200, Helper.encode(content, self.param.charset));
-      });
+        var pass = this.param.ignorePretty.some(function(i) {
+          return new RegExp(i).test(realpath);
+        });
+
+        if (!pass) {
+          content = HTML(content, {
+            indent_char: ' ',
+            indent_size: 2,
+            indent_inner_html: true,
+            unformatted: ['code', 'pre', 'em', 'strong', 'span']
+          });
+        }
+
+        cb(200, Helper.encode(content, this.param.charset));
+      }.bind(this));
     }
   },
   handle: function (req, res, next) {
@@ -101,7 +114,6 @@ ESSI.prototype = {
 
     _url = Helper.filteredUrl(_url, this.param.filter, this.param.traceRule);
 
-    var self = this;
     this.compile(Helper.realPath(_url, this.param.rootdir), null, false, function (code, content) {
       if (code == 302) {
         res.writeHead(302, {
@@ -112,7 +124,7 @@ ESSI.prototype = {
       else {
         res.writeHead(200, {
           "Access-Control-Allow-Origin": '*',
-          "Content-Type": "text/html; charset=" + self.param.charset,
+          "Content-Type": "text/html; charset=" + this.param.charset,
           "X-MiddleWare": "essi"
         });
         res.write(content);
@@ -126,10 +138,10 @@ ESSI.prototype = {
         }
       }
 
-      if (("Response " + _url).match(self.param.traceRule)) {
+      if (("Response " + _url).match(this.param.traceRule)) {
         Helper.Log.response(_url + " [Code] " + code + "\n");
       }
-    });
+    }.bind(this));
   }
 };
 
