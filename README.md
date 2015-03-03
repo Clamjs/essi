@@ -120,6 +120,7 @@ gulp
   "hosts": {},                      // 域名与IP的hosts对应
   "juicer": true,                   // 是否要用juicer引擎，没有特殊需求一般为true
   "ignoreTokens": [],               // 忽略解析某些Token（正则数组）
+  "ignorePretty": [],               // HTML缩进忽略文件列表（正则数组）
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "version": "1.0.0",               // assets版本
