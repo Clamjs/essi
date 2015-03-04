@@ -1,6 +1,7 @@
 var pathLib = require("path");
 var urlLib = require("url");
 var fsLib = require("fs");
+var util = require("util");
 var HTML = require("js-beautify").html;
 
 var Local = require("./lib/local");
@@ -61,9 +62,17 @@ ESSI.prototype = {
       content = Helper.decode(content);
     }
 
-    var isJuicer = this.param.ignoreJuicer.every(function (i) {
-      return !new RegExp(i).test(realpath);
-    });
+    var isJuicer = true;
+    var ignoreJuicer = this.param.ignoreJuicer;
+    if (util.isArray(ignoreJuicer)) {
+      isJuicer = ignoreJuicer.every(function (i) {
+        return !new RegExp(i).test(realpath);
+      });
+    }
+    else if (typeof ignoreJuicer == "boolean") {
+      isJuicer = !ignoreJuicer;
+    }
+
     isJuicer = isJuicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
     if (content) {
       content = local.parse(content, isJuicer);
@@ -92,9 +101,16 @@ ESSI.prototype = {
 
         content = Helper.customReplace(content, this.param.replaces);
 
-        var pass = this.param.ignorePretty.some(function(i) {
-          return new RegExp(i).test(realpath);
-        });
+        var pass = false;
+        var ignorePretty = this.param.ignorePretty;
+        if (util.isArray(ignorePretty)) {
+          pass = ignorePretty.some(function(i) {
+            return new RegExp(i).test(realpath);
+          });
+        }
+        else if (typeof ignorePretty == "boolean") {
+          pass = ignorePretty;
+        }
 
         if (!pass) {
           content = HTML(content, {
