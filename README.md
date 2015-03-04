@@ -118,9 +118,9 @@ gulp
   },
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
-  "juicer": true,                   // 是否要用juicer引擎，没有特殊需求一般为true
   "ignoreTokens": [],               // 忽略解析某些Token（正则数组）
-  "ignorePretty": [],               // HTML缩进忽略文件列表（正则数组）
+  "ignoreJuicer": [],               // 忽略使用juicer引擎解析的文件列表（正则数组）；若为"all",则全部忽略
+  "ignorePretty": [],               // 忽略HTML缩进优化的文件列表（正则数组）；若为"all",则全部忽略
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "version": "1.0.0",               // assets版本
