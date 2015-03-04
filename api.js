@@ -69,8 +69,8 @@ ESSI.prototype = {
         return !new RegExp(i).test(realpath);
       });
     }
-    else if (typeof ignoreJuicer == "string" && ignoreJuicer == "all") {
-      isJuicer = false;
+    else if (typeof ignoreJuicer == "boolean") {
+      isJuicer = !ignoreJuicer;
     }
 
     isJuicer = isJuicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
@@ -108,8 +108,8 @@ ESSI.prototype = {
             return new RegExp(i).test(realpath);
           });
         }
-        else if (typeof ignorePretty == "string" && ignorePretty == "all") {
-          pass = true;
+        else if (typeof ignorePretty == "boolean") {
+          pass = ignorePretty;
         }
 
         if (!pass) {

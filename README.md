@@ -47,6 +47,10 @@ The template engine `Juicer` is integrated in `ESSI`.
 
 Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
+## Magic Variable
+
+__PARAM_STRING_ITEM__
+
 ## Assets
 
 > Using `fe-move` attribute in `<script>` or `<link>` tag,
@@ -66,18 +70,23 @@ Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
 <link fe-group="groupname" rel="stylesheet" href="path/to/file.css" />
 ```
-> `ESSI` will make the `Combo URL` according to `fe-move` and `fe-group` in build process.
+> `ESSI` will make the `Combo URL` according to `fe-group` and `fe-move` in build process.
 
 ```
-<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file1.js"></script>
-<script fe-move="top" fe-group="group1" type="text/javascript" src="path/to/file2.js"></script>
+<script fe-group="group1" type="text/javascript" src="path/to/file1.js"></script>
+<script fe-group="group1" type="text/javascript" src="path/to/file2.js"></script>
 <script fe-move="top" fe-group="group2" type="text/javascript" src="path/to/file3.js"></script>
 ```
 	After Build Process, the script tags above will be converted to:
 
 ```
-<script type="text/javascript" src="http://CDNPATH/version/path/to/??file1.js,file2.js"></script>
 <script type="text/javascript" src="http://CDNPATH/version/path/to/file3.js"></script>
+</head>
+
+...
+
+<script type="text/javascript" src="http://CDNPATH/version/path/to/??file1.js,file2.js"></script>
+
 ```
 
 # Install & Usage
@@ -119,8 +128,8 @@ gulp
   "remote": {"(http:\/\/.+)":"$1"}, // 自定义远程抓取URL提取的正则表达式
   "hosts": {},                      // 域名与IP的hosts对应
   "ignoreTokens": [],               // 忽略解析某些Token（正则数组）
-  "ignoreJuicer": [],               // 忽略使用juicer引擎解析的文件列表（正则数组）；若为"all",则全部忽略
-  "ignorePretty": [],               // 忽略HTML缩进优化的文件列表（正则数组）；若为"all",则全部忽略
+  "ignoreJuicer": [],               // 忽略使用juicer引擎解析的文件列表（正则数组）；若布尔型,则为全局生效开关
+  "ignorePretty": [],               // 忽略HTML缩进优化的文件列表（正则数组）；若布尔型,则为全局生效开关
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "version": "1.0.0",               // assets版本
