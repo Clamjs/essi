@@ -4,6 +4,14 @@
  * */
 var ESSI = require("./api");
 
+try {
+  var updateNotifier = require("update-notifier");
+  var pkg = require(__dirname + "/package.json");
+  updateNotifier({pkg: pkg}).notify();
+}
+catch (e) {
+}
+
 exports = module.exports = function (param, dir) {
   return function () {
     var essiInst = new ESSI(param, dir);
@@ -64,7 +72,7 @@ exports.gulp = function (param, dir) {
       file.path,
       file.contents,
       true,
-      function(code, buff) {
+      function (code, buff) {
         var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
           file.contents = buff;
