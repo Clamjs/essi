@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "check-update": "0.0.8",
+    "fetch-agent": "~0.0.2",
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
     "js-beautify": "~1.5.5",
