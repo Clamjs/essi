@@ -2,6 +2,8 @@ var pathLib = require("path");
 var urlLib = require("url");
 var fsLib = require("fs");
 var util = require("util");
+var merge = require("merge");
+var mkdirp = require("mkdirp");
 var HTML = require("js-beautify").html;
 
 var Local = require("./lib/local");
@@ -10,7 +12,7 @@ var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
 
 function ESSI(param, dir) {
-  this.param = Helper.clone(require("./lib/param"));
+  this.param = merge(true, require("./lib/param"));
   this.cacheDir = null;
 
   if (dir) {
@@ -18,7 +20,7 @@ function ESSI(param, dir) {
     var confDir = pathLib.dirname(confFile);
 
     if (!fsLib.existsSync(confDir)) {
-      Helper.mkdirPSync(confDir);
+      mkdirp.sync(confDir);
       fsLib.chmod(confDir, 0777);
     }
 
@@ -36,18 +38,18 @@ function ESSI(param, dir) {
       confJSON = {};
     }
 
-    this.param = Helper.merge(true, this.param, confJSON, param || {});
+    this.param = merge.recursive(true, this.param, confJSON, param || {});
 
     if (this.param.cache) {
       this.cacheDir = pathLib.join(confDir, "../.cache");
       if (!fsLib.existsSync(this.cacheDir)) {
-        Helper.mkdirPSync(this.cacheDir);
+        mkdirp.sync(this.cacheDir);
         fsLib.chmod(this.cacheDir, 0777);
       }
     }
   }
   else {
-    this.param = Helper.merge(true, this.param, param || {});
+    this.param = merge.recursive(true, this.param, param || {});
   }
 
   this.param.traceRule = new RegExp(this.param.traceRule, 'i');
