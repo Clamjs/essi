@@ -9,7 +9,8 @@
   "keywords": [
     "ssi",
     "include",
-    "remote"
+    "juicer",
+    "velocity"
   ],
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   "author": "limingv5",
   "license": "ISC",
   "dependencies": {
+    "check-update": "0.0.8",
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
     "js-beautify": "~1.5.5",
@@ -25,7 +27,6 @@
     "mace": "~2.0.0",
     "merge": "~1.2.0",
     "mkdirp": "~0.5.0",
-    "through2": "~0.6.3",
-    "update-notifier": "~0.3.1"
+    "through2": "~0.6.5"
   }
 }
