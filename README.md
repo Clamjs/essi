@@ -49,7 +49,7 @@ Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
 ## Magic Variable
 
-__PARAM_STRING_ITEM__
+`__PARAM_STRING_ITEM__`
 
 ## Assets
 
