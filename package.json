@@ -4,7 +4,7 @@
   "description": "Enhanced SSI",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha test/test.js"
   },
   "keywords": [
     "ssi",
@@ -20,7 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "check-update": "0.0.8",
-    "fetch-agent": "~0.0.2",
+    "fetch-agent": "~0.2.1",
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
     "js-beautify": "~1.5.5",

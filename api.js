@@ -4,9 +4,10 @@ var fsLib = require("fs");
 var util = require("util");
 var merge = require("merge");
 var mkdirp = require("mkdirp");
+var fetch = require("fetch-agent");
 var HTML = require("js-beautify").html;
 
-var Local = require("./lib/local");
+var Juicer = require("./lib/juicer");
 var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
@@ -40,6 +41,15 @@ function ESSI(param, dir) {
 
     this.param = merge.recursive(true, this.param, confJSON, param || {});
 
+    // Magic Variable
+    var key;
+    for (var i in this.param) {
+      key = "__" + i + "__";
+      if (typeof this.param[i] == "string" && !this.param.replaces[key]) {
+        this.param.replaces[key] = this.param[i];
+      }
+    }
+
     if (this.param.cache) {
       this.cacheDir = pathLib.join(confDir, "../.cache");
       if (!fsLib.existsSync(this.cacheDir)) {
@@ -57,7 +67,7 @@ function ESSI(param, dir) {
 ESSI.prototype = {
   constructor: ESSI,
   compile: function (realpath, content, assetsFlag, cb) {
-    var local = new Local(realpath, this.param);
+    var local = new Juicer(this.param);
 
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
@@ -75,16 +85,16 @@ ESSI.prototype = {
       isJuicer = !ignoreJuicer;
     }
 
-    isJuicer = isJuicer || (fsLib.existsSync(realpath) && fsLib.statSync(realpath).isDirectory());
+    isJuicer = isJuicer || fsLib.existsSync(realpath);
     if (content) {
-      content = local.parse(content, isJuicer);
+      content = local.parse(content, realpath, isJuicer, true);
     }
     else {
-      content = local.fetch(isJuicer);
+      content = local.fetch(realpath, isJuicer);
     }
 
     if (content === false) {
-      cb(302);
+      cb();
     }
     else {
       content = Helper.customReplace(content, this.param.replaces);
@@ -106,7 +116,7 @@ ESSI.prototype = {
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
         if (util.isArray(ignorePretty)) {
-          pass = ignorePretty.some(function(i) {
+          pass = ignorePretty.some(function (i) {
             return new RegExp(i).test(realpath);
           });
         }
@@ -123,46 +133,82 @@ ESSI.prototype = {
           });
         }
 
-        cb(200, Helper.encode(content, this.param.charset));
+        cb(Helper.encode(content, this.param.charset));
       }.bind(this));
     }
   },
   handle: function (req, res, next) {
-    var _url = urlLib.parse(req.url).pathname;
-    if (("Request " + _url).match(this.param.traceRule)) {
-      Helper.Log.request(_url);
+    if (("Request " + req.url).match(this.param.traceRule)) {
+      Helper.Log.request(req.url);
     }
 
-    _url = Helper.filteredUrl(_url, this.param.filter, this.param.traceRule);
+    var Header = {
+      "Access-Control-Allow-Origin": '*',
+      "Content-Type": "text/html; charset=" + this.param.charset,
+      "X-MiddleWare": "essi"
+    };
 
-    this.compile(Helper.realPath(_url, this.param.rootdir), null, false, function (code, content) {
-      if (code == 302) {
-        res.writeHead(302, {
-          "Location": _url + '/'
-        });
-        res.end();
+    var realPath = Helper.realPath(
+      Helper.filteredUrl(urlLib.parse(req.url).pathname, this.param.filter, this.param.traceRule),
+      this.param.rootdir
+    );
+    if (fsLib.existsSync(realPath)) {
+      if (("Response " + realPath).match(this.param.traceRule)) {
+        Helper.Log.response(realPath + "\n");
+      }
+
+      var state = fsLib.statSync(realPath);
+      if (state && state.isFile()) {
+        this.compile(realPath, null, false, function (content) {
+          if (typeof content != "undefined") {
+            res.writeHead(200, Header);
+            res.write(content);
+            res.end();
+          }
+
+          try {
+            next();
+          }
+          catch (e) {
+            console.log(e);
+          }
+        }.bind(this));
       }
       else {
-        res.writeHead(200, {
-          "Access-Control-Allow-Origin": '*',
-          "Content-Type": "text/html; charset=" + this.param.charset,
-          "X-MiddleWare": "essi"
-        });
-        res.write(content);
+        next();
+      }
+    }
+    else {
+      fetch.pipe(req, this.param.hosts, function(err, buff, nsres) {
+        if (err) {
+          res.writeHead(404, Header);
+          res.write("<h1 style='color: #e60000'>404 Not Found!</h1><h2>" + realPath + "</h2>");
+
+          if (("Response " + realPath).match(this.param.traceRule)) {
+            Helper.Log.error("  <= " + realPath + "\n");
+          }
+        }
+        else {
+          var location;
+          if (nsres.statusCode == 302) {
+            location = nsres.headers.location;
+            res.writeHead(302, {
+              "Location": location
+            });
+          }
+          else {
+            location = req.url;
+            res.writeHead(nsres.statusCode, Header);
+            res.write(buff);
+          }
+
+          if (("Response " + location).match(this.param.traceRule)) {
+            Helper.Log.response(location + "\n");
+          }
+        }
         res.end();
-
-        try {
-          next();
-        }
-        catch (e) {
-          console.log(e);
-        }
-      }
-
-      if (("Response " + _url).match(this.param.traceRule)) {
-        Helper.Log.response(_url + " [Code] " + code + "\n");
-      }
-    }.bind(this));
+      }.bind(this));
+    }
   }
 };
 
