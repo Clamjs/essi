@@ -1,15 +1,16 @@
 {
   "name": "essi",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Enhanced SSI",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha test/test.js"
   },
   "keywords": [
     "ssi",
     "include",
-    "remote"
+    "juicer",
+    "velocity"
   ],
   "repository": {
     "type": "git",
@@ -18,11 +19,15 @@
   "author": "limingv5",
   "license": "ISC",
   "dependencies": {
+    "check-update": "0.0.8",
+    "fetch-agent": "~0.2.1",
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
-    "js-beautify": "~1.5.4",
+    "js-beautify": "~1.5.5",
     "juicer": "~0.6.8-stable",
     "mace": "~2.0.0",
-    "through2": "~0.6.3"
+    "merge": "~1.2.0",
+    "mkdirp": "~0.5.0",
+    "through2": "~0.6.5"
   }
 }

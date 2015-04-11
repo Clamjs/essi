@@ -4,6 +4,22 @@
  * */
 var ESSI = require("./api");
 
+try {
+  var pkg = require(__dirname + "/package.json");
+
+  require("check-update")({
+    packageName: pkg.name,
+    packageVersion: pkg.version,
+    isCLI: process.title == "node"
+  }, function (err, latestVersion, defaultMessage) {
+    if (!err && pkg.version < latestVersion) {
+      console.log(defaultMessage);
+    }
+  });
+}
+catch (e) {
+}
+
 exports = module.exports = function (param, dir) {
   return function () {
     var essiInst = new ESSI(param, dir);
@@ -64,7 +80,7 @@ exports.gulp = function (param, dir) {
       file.path,
       file.contents,
       true,
-      function(code, buff) {
+      function (code, buff) {
         var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
           file.contents = buff;
