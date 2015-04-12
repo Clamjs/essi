@@ -53,8 +53,9 @@ function ESSI(param, dir) {
     if (this.param.cache) {
       this.cacheDir = pathLib.join(confDir, "../.cache");
       if (!fsLib.existsSync(this.cacheDir)) {
-        mkdirp.sync(this.cacheDir);
-        fsLib.chmod(this.cacheDir, 0777);
+        mkdirp(this.cacheDir, function(e, dir) {
+          fsLib.chmod(dir, 0777);
+        });
       }
     }
   }
