@@ -94,7 +94,7 @@ ESSI.prototype = {
     }
 
     if (content === false) {
-      cb();
+      cb({code: "Not Found"});
     }
     else {
       content = Helper.customReplace(content, this.param.replaces);
@@ -133,15 +133,11 @@ ESSI.prototype = {
           });
         }
 
-        cb(Helper.encode(content, this.param.charset));
+        cb(null, Helper.encode(content, this.param.charset));
       }.bind(this));
     }
   },
   handle: function (req, res, next) {
-    if (("Request " + req.url).match(this.param.traceRule)) {
-      Helper.Log.request(req.url);
-    }
-
     var Header = {
       "Access-Control-Allow-Origin": '*',
       "Content-Type": "text/html; charset=" + this.param.charset,
@@ -153,24 +149,25 @@ ESSI.prototype = {
       this.param.rootdir
     );
     if (fsLib.existsSync(realPath)) {
-      if (("Response " + realPath).match(this.param.traceRule)) {
-        Helper.Log.response(realPath + "\n");
-      }
-
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
-        this.compile(realPath, null, false, function (content) {
-          if (typeof content != "undefined") {
-            res.writeHead(200, Header);
-            res.write(content);
-            res.end();
-          }
+        if (("Request " + req.url).match(this.param.traceRule)) {
+          Helper.Log.request(req.url);
+        }
 
-          try {
-            next();
+        this.compile(realPath, null, false, function (err, buff) {
+          if (!err) {
+            res.writeHead(200, Header);
+            res.write(buff);
+            res.end();
+
+            if (("Response " + realPath).match(this.param.traceRule)) {
+              Helper.Log.response(realPath + "\n");
+            }
           }
-          catch (e) {
-            console.log(e);
+          else {
+            Helper.Log.error("  <= " + realPath + ' ' + err.code + "!\n");
+            next();
           }
         }.bind(this));
       }
@@ -185,7 +182,7 @@ ESSI.prototype = {
           res.write("<h1 style='color: #e60000'>404 Not Found!</h1><h2>" + realPath + "</h2>");
 
           if (("Response " + realPath).match(this.param.traceRule)) {
-            Helper.Log.error("  <= " + realPath + "\n");
+            Helper.Log.error("  <= " + realPath + ' ' + err.code + "!\n");
           }
         }
         else {
