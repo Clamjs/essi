@@ -80,7 +80,7 @@ exports.gulp = function (param, dir) {
       file.path,
       file.contents,
       true,
-      function (code, buff) {
+      function (err, buff) {
         var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
           file.contents = buff;
