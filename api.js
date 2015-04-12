@@ -182,26 +182,17 @@ ESSI.prototype = {
           res.writeHead(404, Header);
           res.write("<h1 style='color: #e60000'>404 Not Found!</h1><h2>" + realPath + "</h2>");
 
-          if (("Response " + realPath).match(this.param.traceRule)) {
-            Helper.Log.error("  <= " + realPath + ' ' + err.code + "!\n");
-          }
+          Helper.Log.error(realPath + ' ' + err.code + "!\n");
         }
         else {
-          var location;
           if (nsres.statusCode == 302) {
-            location = nsres.headers.location;
             res.writeHead(302, {
-              "Location": location
+              "Location": nsres.headers.location
             });
           }
           else {
-            location = req.url;
             res.writeHead(nsres.statusCode, Header);
             res.write(buff);
-          }
-
-          if (("Response " + location).match(this.param.traceRule)) {
-            Helper.Log.response(location + "\n");
           }
         }
         res.end();
