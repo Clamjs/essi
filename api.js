@@ -86,7 +86,6 @@ ESSI.prototype = {
       isJuicer = !ignoreJuicer;
     }
 
-    isJuicer = isJuicer || fsLib.existsSync(realpath);
     if (content) {
       content = local.parse(content, realpath, isJuicer, true);
     }
