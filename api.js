@@ -5,6 +5,7 @@ var util = require("util");
 var merge = require("merge");
 var mkdirp = require("mkdirp");
 var fetch = require("fetch-agent");
+var J = require("juicer");
 var HTML = require("js-beautify").html;
 
 var Juicer = require("./lib/juicer");
@@ -53,7 +54,7 @@ function ESSI(param, dir) {
     if (this.param.cache) {
       this.cacheDir = pathLib.join(confDir, "../.cache");
       if (!fsLib.existsSync(this.cacheDir)) {
-        mkdirp(this.cacheDir, function(e, dir) {
+        mkdirp(this.cacheDir, function (e, dir) {
           fsLib.chmod(dir, 0777);
         });
       }
@@ -176,14 +177,19 @@ ESSI.prototype = {
       }
     }
     else {
-      fetch.pipe(req, this.param.hosts, function(err, buff, nsres) {
-        if (err) {
-          res.writeHead(404, Header);
-          res.write("<h1 style='color: #e60000'>404 Not Found!</h1><h2>" + realPath + "</h2>");
+      fetch.pipe(req, this.param.hosts, function (err, buff, nsres) {
+        var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
 
-          Helper.Log.error(realPath + ' ' + err.code + "!\n");
+        if (err) {
+          res.writeHead(500, Header);
+          res.write(J(errorTPL, {
+            url: req.url,
+            code: 500,
+            reason: err.code
+          }));
+          Helper.Log.error(req.url + ' ' + err.code + "!\n");
         }
-        else {
+        else if (nsres.statusCode) {
           if (nsres.statusCode == 302) {
             res.writeHead(302, {
               "Location": nsres.headers.location
@@ -191,7 +197,17 @@ ESSI.prototype = {
           }
           else {
             res.writeHead(nsres.statusCode, Header);
-            res.write(buff);
+            if (nsres.statusCode == 404) {
+              res.write(J(errorTPL, {
+                url: realPath,
+                code: 404,
+                reason: "Not Found"
+              }));
+              Helper.Log.error(realPath + " Not Found!\n");
+            }
+            else {
+              res.write(buff);
+            }
           }
         }
         res.end();
