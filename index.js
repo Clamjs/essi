@@ -4,21 +4,16 @@
  * */
 var ESSI = require("./api");
 
-try {
-  var pkg = require(__dirname + "/package.json");
-
-  require("check-update")({
-    packageName: pkg.name,
-    packageVersion: pkg.version,
-    isCLI: process.title == "node"
-  }, function (err, latestVersion, defaultMessage) {
-    if (!err && pkg.version < latestVersion) {
-      console.log(defaultMessage);
-    }
-  });
-}
-catch (e) {
-}
+var pkg = require(__dirname + "/package.json");
+require("check-update")({
+  packageName: pkg.name,
+  packageVersion: pkg.version,
+  isCLI: process.title == "node"
+}, function (err, latestVersion, defaultMessage) {
+  if (!err && pkg.version < latestVersion) {
+    console.log(defaultMessage);
+  }
+});
 
 exports = module.exports = function (param, dir) {
   return function () {

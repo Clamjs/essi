@@ -1,11 +1,9 @@
 {
   "name": "essi",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Enhanced SSI",
   "main": "index.js",
-  "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test/test.js"
-  },
+  "scripts": {},
   "keywords": [
     "ssi",
     "include",
