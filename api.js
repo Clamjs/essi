@@ -1,5 +1,4 @@
 var pathLib = require("path");
-var urlLib = require("url");
 var fsLib = require("fs");
 var util = require("util");
 var merge = require("merge");
@@ -61,7 +60,7 @@ function ESSI(param, dir) {
     this.param.rootdir = pathLib.normalize(root);
   }
   else {
-    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), root || "src"));
+    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), root));
   }
 
   if (!this.cacheDir) {
