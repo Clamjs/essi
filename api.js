@@ -122,6 +122,10 @@ ESSI.prototype = {
 
         content = Helper.customReplace(content, this.param.replaces);
 
+        if (this.param.native2ascii) {
+          content = Helper.encodeHtml(content);
+        }
+
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
         if (util.isArray(ignorePretty)) {
@@ -134,12 +138,11 @@ ESSI.prototype = {
         }
 
         if (!pass) {
-          content = Helper.encodeHtml(content);
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
-            unformatted: ['code', 'pre', 'em', 'strong', 'span']
+            unformatted: ["code", "pre", "em", "strong", "span"]
           });
         }
 
