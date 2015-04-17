@@ -134,6 +134,7 @@ ESSI.prototype = {
         }
 
         if (!pass) {
+          content = Helper.encodeHtml(content);
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
