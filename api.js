@@ -1,5 +1,4 @@
 var pathLib = require("path");
-var urlLib = require("url");
 var fsLib = require("fs");
 var util = require("util");
 var merge = require("merge");
@@ -18,8 +17,9 @@ function ESSI(param, dir) {
   this.cacheDir = null;
 
   if (dir) {
-    var confFile = pathLib.join(process.cwd(), dir || ".config", pathLib.basename(__dirname) + ".json");
+    var confFile = pathLib.join(process.cwd(), dir, pathLib.basename(__dirname) + ".json");
     var confDir = pathLib.dirname(confFile);
+    this.cacheDir = pathLib.join(confDir, "../.cache");
 
     if (!fsLib.existsSync(confDir)) {
       mkdirp.sync(confDir);
@@ -50,18 +50,26 @@ function ESSI(param, dir) {
         this.param.replaces[key] = this.param[i];
       }
     }
-
-    if (this.param.cache) {
-      this.cacheDir = pathLib.join(confDir, "../.cache");
-      if (!fsLib.existsSync(this.cacheDir)) {
-        mkdirp(this.cacheDir, function (e, dir) {
-          fsLib.chmod(dir, 0777);
-        });
-      }
-    }
   }
   else {
     this.param = merge.recursive(true, this.param, param || {});
+  }
+
+  var root = this.param.rootdir || "src";
+  if (root.indexOf('/') == 0 || /^\w{1}:\\.*$/.test(root)) {
+    this.param.rootdir = pathLib.normalize(root);
+  }
+  else {
+    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), root));
+  }
+
+  if (!this.cacheDir) {
+    this.cacheDir = pathLib.join(this.param.rootdir, "../.cache");
+  }
+  if (this.param.cache && !fsLib.existsSync(this.cacheDir)) {
+    mkdirp(this.cacheDir, function (e, dir) {
+      fsLib.chmod(dir, 0777);
+    });
   }
 
   this.param.traceRule = new RegExp(this.param.traceRule, 'i');
@@ -126,6 +134,7 @@ ESSI.prototype = {
         }
 
         if (!pass) {
+          content = Helper.encodeHtml(content);
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
@@ -145,10 +154,7 @@ ESSI.prototype = {
       "X-MiddleWare": "essi"
     };
 
-    var realPath = Helper.realPath(
-      Helper.filteredUrl(urlLib.parse(req.url).pathname, this.param.filter, this.param.traceRule),
-      this.param.rootdir
-    );
+    var realPath = Helper.realPath(req.url, this.param);
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
