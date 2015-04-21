@@ -15,7 +15,7 @@ require("check-update")({
   }
 });
 
-function transfer(dir) {
+function init_config(dir) {
   var pathLib = require("path");
   var fsLib = require("fs");
   var mkdirp = require("mkdirp");
@@ -50,7 +50,7 @@ function transfer(dir) {
 }
 
 exports = module.exports = function (param, dir) {
-  var confFile = transfer(dir);
+  var confFile = init_config(dir);
 
   return function () {
     var essiInst = new ESSI(param, confFile);
@@ -90,7 +90,7 @@ exports = module.exports = function (param, dir) {
 exports.gulp = function (param, dir) {
   var through = require("through2");
 
-  var essiInst = new ESSI(param, transfer(dir));
+  var essiInst = new ESSI(param, init_config(dir));
   essiInst.param.traceRule = false;
 
   return through.obj(function (file, enc, cb) {
