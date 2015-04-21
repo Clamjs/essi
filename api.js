@@ -49,7 +49,14 @@ function ESSI(param, confFile) {
     }
   }
 
-  this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), this.param.rootdir || "src"));
+  var rootdir = this.param.rootdir || "src";
+  if (rootdir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(rootdir)) {
+    this.param.rootdir = rootdir;
+  }
+  else {
+    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), rootdir));
+  }
+
   if (!this.cacheDir) {
     this.cacheDir = pathLib.join(this.param.rootdir, "../.cache");
   }
