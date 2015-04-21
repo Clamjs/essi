@@ -12,57 +12,44 @@ var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
 
-function ESSI(param, dir) {
-  this.param = merge(true, require("./lib/param"));
+function ESSI(param, confFile) {
   this.cacheDir = null;
 
-  if (dir) {
-    var confFile = pathLib.join(process.cwd(), dir, pathLib.basename(__dirname) + ".json");
-    var confDir = pathLib.dirname(confFile);
-    this.cacheDir = pathLib.join(confDir, "../.cache");
+  this.param = require("./lib/param");
+  delete require.cache["./lib/param"];
+  param = param || {};
 
-    if (!fsLib.existsSync(confDir)) {
-      mkdirp.sync(confDir);
-      fsLib.chmod(confDir, 0777);
-    }
+  var confJSON = {};
+  if (confFile) {
+    this.cacheDir = pathLib.join(pathLib.dirname(confFile), "../.cache");
 
     if (!fsLib.existsSync(confFile)) {
       fsLib.writeFileSync(confFile, JSON.stringify(this.param, null, 2), {encoding: "utf-8"});
       fsLib.chmod(confFile, 0777);
     }
 
-    var confJSON = {};
     try {
-      confJSON = JSON.parse(fsLib.readFileSync(confFile));
+      confJSON = require(confFile);
+      delete require.cache[confFile];
     }
     catch (e) {
       Helper.Log.error("Params Error!");
       confJSON = {};
     }
+  }
 
-    this.param = merge.recursive(true, this.param, confJSON, param || {});
+  this.param = merge.recursive(true, this.param, confJSON, param);
 
-    // Magic Variable
-    var key;
-    for (var i in this.param) {
-      key = "__" + i + "__";
-      if (typeof this.param[i] == "string" && !this.param.replaces[key]) {
-        this.param.replaces[key] = this.param[i];
-      }
+  // Magic Variable
+  var key;
+  for (var i in this.param) {
+    key = "__" + i + "__";
+    if (typeof this.param[i] == "string" && !this.param.replaces[key]) {
+      this.param.replaces[key] = this.param[i];
     }
   }
-  else {
-    this.param = merge.recursive(true, this.param, param || {});
-  }
 
-  var root = this.param.rootdir || "src";
-  if (root.indexOf('/') == 0 || /^\w{1}:\\.*$/.test(root)) {
-    this.param.rootdir = pathLib.normalize(root);
-  }
-  else {
-    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), root));
-  }
-
+  this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), this.param.rootdir || "src"));
   if (!this.cacheDir) {
     this.cacheDir = pathLib.join(this.param.rootdir, "../.cache");
   }
