@@ -15,8 +15,7 @@ var Helper = require("./lib/helper");
 function ESSI(param, confFile) {
   this.cacheDir = null;
 
-  this.param = require("./lib/param");
-  delete require.cache["./lib/param"];
+  this.param = merge(true, require("./lib/param"));
   param = param || {};
 
   var confJSON = {};
