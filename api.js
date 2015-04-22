@@ -1,5 +1,4 @@
 var pathLib = require("path");
-var urlLib = require("url");
 var fsLib = require("fs");
 var util = require("util");
 var merge = require("merge");
@@ -13,55 +12,57 @@ var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
 
-function ESSI(param, dir) {
-  this.param = merge(true, require("./lib/param"));
+function ESSI(param, confFile) {
   this.cacheDir = null;
 
-  if (dir) {
-    var confFile = pathLib.join(process.cwd(), dir || ".config", pathLib.basename(__dirname) + ".json");
-    var confDir = pathLib.dirname(confFile);
+  this.param = merge(true, require("./lib/param"));
+  param = param || {};
 
-    if (!fsLib.existsSync(confDir)) {
-      mkdirp.sync(confDir);
-      fsLib.chmod(confDir, 0777);
-    }
+  var confJSON = {};
+  if (confFile) {
+    this.cacheDir = pathLib.join(pathLib.dirname(confFile), "../.cache");
 
     if (!fsLib.existsSync(confFile)) {
       fsLib.writeFileSync(confFile, JSON.stringify(this.param, null, 2), {encoding: "utf-8"});
       fsLib.chmod(confFile, 0777);
     }
 
-    var confJSON = {};
     try {
-      confJSON = JSON.parse(fsLib.readFileSync(confFile));
+      confJSON = require(confFile);
+      delete require.cache[confFile];
     }
     catch (e) {
       Helper.Log.error("Params Error!");
       confJSON = {};
     }
+  }
 
-    this.param = merge.recursive(true, this.param, confJSON, param || {});
+  this.param = merge.recursive(true, this.param, confJSON, param);
 
-    // Magic Variable
-    var key;
-    for (var i in this.param) {
-      key = "__" + i + "__";
-      if (typeof this.param[i] == "string" && !this.param.replaces[key]) {
-        this.param.replaces[key] = this.param[i];
-      }
-    }
-
-    if (this.param.cache) {
-      this.cacheDir = pathLib.join(confDir, "../.cache");
-      if (!fsLib.existsSync(this.cacheDir)) {
-        mkdirp(this.cacheDir, function (e, dir) {
-          fsLib.chmod(dir, 0777);
-        });
-      }
+  // Magic Variable
+  var key;
+  for (var i in this.param) {
+    key = "__" + i + "__";
+    if (typeof this.param[i] == "string" && !this.param.replaces[key]) {
+      this.param.replaces[key] = this.param[i];
     }
   }
+
+  var rootdir = this.param.rootdir || "src";
+  if (rootdir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(rootdir)) {
+    this.param.rootdir = rootdir;
+  }
   else {
-    this.param = merge.recursive(true, this.param, param || {});
+    this.param.rootdir = pathLib.normalize(pathLib.join(process.cwd(), rootdir));
+  }
+
+  if (!this.cacheDir) {
+    this.cacheDir = pathLib.join(this.param.rootdir, "../.cache");
+  }
+  if (this.param.cache && !fsLib.existsSync(this.cacheDir)) {
+    mkdirp(this.cacheDir, function (e, dir) {
+      fsLib.chmod(dir, 0777);
+    });
   }
 
   this.param.traceRule = new RegExp(this.param.traceRule, 'i');
@@ -114,6 +115,10 @@ ESSI.prototype = {
 
         content = Helper.customReplace(content, this.param.replaces);
 
+        if (this.param.native2ascii) {
+          content = Helper.encodeHtml(content);
+        }
+
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
         if (util.isArray(ignorePretty)) {
@@ -130,7 +135,7 @@ ESSI.prototype = {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
-            unformatted: ['code', 'pre', 'em', 'strong', 'span']
+            unformatted: ["code", "pre", "em", "strong", "span"]
           });
         }
 
@@ -145,10 +150,7 @@ ESSI.prototype = {
       "X-MiddleWare": "essi"
     };
 
-    var realPath = Helper.realPath(
-      Helper.filteredUrl(urlLib.parse(req.url).pathname, this.param.filter, this.param.traceRule),
-      this.param.rootdir
-    );
+    var realPath = Helper.realPath(req.url, this.param);
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {

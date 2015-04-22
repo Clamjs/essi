@@ -4,25 +4,56 @@
  * */
 var ESSI = require("./api");
 
-try {
-  var pkg = require(__dirname + "/package.json");
+var pkg = require(__dirname + "/package.json");
+require("check-update")({
+  packageName: pkg.name,
+  packageVersion: pkg.version,
+  isCLI: process.title == "node"
+}, function (err, latestVersion, defaultMessage) {
+  if (!err && pkg.version < latestVersion) {
+    console.log(defaultMessage);
+  }
+});
 
-  require("check-update")({
-    packageName: pkg.name,
-    packageVersion: pkg.version,
-    isCLI: process.title == "node"
-  }, function (err, latestVersion, defaultMessage) {
-    if (!err && pkg.version < latestVersion) {
-      console.log(defaultMessage);
+function init_config(dir) {
+  var pathLib = require("path");
+  var fsLib = require("fs");
+  var mkdirp = require("mkdirp");
+
+  if (dir) {
+    var confDir, confFile, json = pathLib.basename(__dirname) + ".json";
+    if (dir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(dir)) {
+      if (/\.json$/.test(dir)) {
+        confFile = dir;
+        confDir = pathLib.dirname(confFile);
+      }
+      else {
+        confDir = dir;
+        confFile = pathLib.join(confDir, json);
+      }
     }
-  });
-}
-catch (e) {
+    else {
+      confDir = pathLib.join(process.cwd(), dir);
+      confFile = pathLib.join(confDir, json);
+    }
+
+    if (!fsLib.existsSync(confDir)) {
+      mkdirp.sync(confDir);
+      fsLib.chmod(confDir, 0777);
+    }
+
+    return confFile;
+  }
+  else {
+    return null;
+  }
 }
 
 exports = module.exports = function (param, dir) {
+  var confFile = init_config(dir);
+
   return function () {
-    var essiInst = new ESSI(param, dir);
+    var essiInst = new ESSI(param, confFile);
 
     var req, res, next;
     switch (arguments.length) {
@@ -59,6 +90,9 @@ exports = module.exports = function (param, dir) {
 exports.gulp = function (param, dir) {
   var through = require("through2");
 
+  var essiInst = new ESSI(param, init_config(dir));
+  essiInst.param.traceRule = false;
+
   return through.obj(function (file, enc, cb) {
     var self = this;
 
@@ -74,8 +108,6 @@ exports.gulp = function (param, dir) {
       return;
     }
 
-    var essiInst = new ESSI(param, dir);
-    essiInst.param.traceRule = false;
     essiInst.compile(
       file.path,
       file.contents,
