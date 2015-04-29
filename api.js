@@ -170,6 +170,8 @@ ESSI.prototype = {
   },
   handle: function (req, res, next) {
     var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
+    this.trace.request(HOST, req.url);
+
     var Header = {
       "Access-Control-Allow-Origin": '*',
       "Content-Type": "text/html; charset=" + this.param.charset,
@@ -180,8 +182,6 @@ ESSI.prototype = {
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
-        this.trace.request(HOST, req.url);
-
         this.compile(realPath, null, false, function (err, buff) {
           if (!err) {
             res.writeHead(200, Header);
@@ -233,6 +233,7 @@ ESSI.prototype = {
           }
         }
         res.end();
+        this.trace.response(HOST + req.url);
       }.bind(this));
     }
   }
