@@ -3,6 +3,7 @@
  * 通过require("essi")
  * */
 var ESSI = require("./api");
+var trace = require("plug-trace");
 
 var pkg = require(__dirname + "/package.json");
 require("check-update")({
@@ -21,7 +22,7 @@ function init_config(dir) {
   var mkdirp = require("mkdirp");
 
   if (dir) {
-    var confDir, confFile, json = pathLib.basename(__dirname) + ".json";
+    var confDir, confFile, json = pkg.name + ".json";
     if (dir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(dir)) {
       if (/\.json$/.test(dir)) {
         confFile = dir;
@@ -51,6 +52,11 @@ function init_config(dir) {
 
 exports = module.exports = function (param, dir) {
   var confFile = init_config(dir);
+
+  process.on(pkg.name, function (data) {
+    console.log("=== Served by %s ===", trace.chalk.white(pkg.name));
+    trace(data);
+  });
 
   return function () {
     var essiInst = new ESSI(param, confFile);
@@ -87,13 +93,20 @@ exports = module.exports = function (param, dir) {
   }
 };
 
+exports.name = pkg.name;
 exports.gulp = function (param, dir) {
   var through = require("through2");
+  var confFile = init_config(dir);
 
-  var essiInst = new ESSI(param, init_config(dir));
-  essiInst.param.traceRule = false;
+  process
+    .removeAllListeners(pkg.name)
+    .on(pkg.name, function (data) {
+      trace(data, "error");
+    });
 
   return through.obj(function (file, enc, cb) {
+    var essiInst = new ESSI(param, confFile);
+
     var self = this;
 
     if (file.isNull()) {

@@ -1,11 +1,13 @@
 var pathLib = require("path");
 var fsLib = require("fs");
+var urlLib = require("url");
 var util = require("util");
 var merge = require("merge");
 var mkdirp = require("mkdirp");
 var fetch = require("fetch-agent");
 var J = require("juicer");
 var HTML = require("js-beautify").html;
+var Stack = require("plug-trace").stack;
 
 var Juicer = require("./lib/juicer");
 var Remote = require("./lib/remote");
@@ -17,6 +19,8 @@ function ESSI(param, confFile) {
 
   this.param = merge(true, require("./lib/param"));
   param = param || {};
+
+  this.trace = new Stack(require(__dirname + "/package.json").name);
 
   var confJSON = {};
   if (confFile) {
@@ -32,7 +36,7 @@ function ESSI(param, confFile) {
       delete require.cache[confFile];
     }
     catch (e) {
-      Helper.Log.error("Params Error!");
+      this.trace.error("Can't require config file!", "IO");
       confJSON = {};
     }
   }
@@ -64,13 +68,11 @@ function ESSI(param, confFile) {
       fsLib.chmod(dir, 0777);
     });
   }
-
-  this.param.traceRule = new RegExp(this.param.traceRule, 'i');
 };
 ESSI.prototype = {
   constructor: ESSI,
   compile: function (realpath, content, assetsFlag, cb) {
-    var local = new Juicer(this.param);
+    var local = new Juicer(this.param, this.trace);
 
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
@@ -102,7 +104,7 @@ ESSI.prototype = {
       content = Helper.customReplace(content, this.param.replaces);
 
       // 抓取远程页面
-      var remote = new Remote(content, this.param, this.cacheDir);
+      var remote = new Remote(content, this.param, this.trace, this.cacheDir);
       remote.fetch(function (content) {
         if (!content) {
           content = Helper.readFileInUTF8(realpath);
@@ -140,36 +142,54 @@ ESSI.prototype = {
         }
 
         cb(null, Helper.encode(content, this.param.charset));
+
+        this.trace.response(realpath);
       }.bind(this));
     }
   },
+  getRealPath: function (_url) {
+    var _filter = this.param.filter || {};
+    var jsonstr = JSON.stringify(_filter).replace(/\\{2}/g, '\\');
+    var filter = [];
+    jsonstr.replace(/[\{\,]"([^"]*?)"/g, function (all, key) {
+      filter.push(key);
+    });
+
+    var regx, ori_url;
+    for (var k = 0, len = filter.length; k < len; k++) {
+      regx = new RegExp(filter[k]);
+      if (regx.test(_url)) {
+        ori_url = _url;
+        _url = _url.replace(regx, _filter[filter[k]]);
+        this.trace.filter(regx, ori_url, _url);
+      }
+    }
+
+    _url = urlLib.parse(_url).pathname;
+    return pathLib.join(this.param.rootdir, _url);
+  },
   handle: function (req, res, next) {
+    var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
     var Header = {
       "Access-Control-Allow-Origin": '*',
       "Content-Type": "text/html; charset=" + this.param.charset,
       "X-MiddleWare": "essi"
     };
+    var realPath = this.getRealPath(req.url);
 
-    var realPath = Helper.realPath(req.url, this.param);
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
-        if (("Request " + req.url).match(this.param.traceRule)) {
-          Helper.Log.request(req.url);
-        }
+        this.trace.request(HOST, req.url);
 
         this.compile(realPath, null, false, function (err, buff) {
           if (!err) {
             res.writeHead(200, Header);
             res.write(buff);
             res.end();
-
-            if (("Response " + realPath).match(this.param.traceRule)) {
-              Helper.Log.response(realPath + "\n");
-            }
           }
           else {
-            Helper.Log.error("  <= " + realPath + ' ' + err.code + "!\n");
+            this.trace.error(realPath, err.code);
             next();
           }
         }.bind(this));
@@ -189,7 +209,7 @@ ESSI.prototype = {
             code: 500,
             reason: err.code
           }));
-          Helper.Log.error(req.url + ' ' + err.code + "!\n");
+          this.trace.error(req.url, err.code);
         }
         else if (nsres.statusCode) {
           if (nsres.statusCode == 302) {
@@ -205,7 +225,7 @@ ESSI.prototype = {
                 code: 404,
                 reason: "Not Found"
               }));
-              Helper.Log.error(realPath + " Not Found!\n");
+              this.trace.error(realPath, "404 Not Found");
             }
             else {
               res.write(buff);
