@@ -26,6 +26,7 @@
     "merge": "~1.2.0",
     "mkdirp": "~0.5.0",
     "plug-trace": "~0.0.3",
-    "through2": "~0.6.5"
+    "through2": "~0.6.5",
+    "velocity": "~0.7.2"
   }
 }

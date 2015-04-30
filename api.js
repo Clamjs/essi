@@ -13,6 +13,45 @@ var Juicer = require("./lib/juicer");
 var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
+var VM = require("./lib/vm");
+
+
+var print = function (a) {
+  var result = "";
+  if (typeof a == "object") {
+
+    if (a instanceof(Array)) {
+      result += "[";
+      var index = 0;
+      for (var i = 0; i < a.length; i++) {
+
+        if (index > 0) {
+          result += ","
+        }
+        result += print(a[i]);
+        index++;
+      }
+      result += "]";
+    }
+    else {
+      result += "{";
+      var index = 0;
+      for (var i in a) {
+
+        if (index > 0) {
+          result += ","
+        }
+        result += '"' + i + '":' + print(a[i]);
+        index++;
+      }
+      result += "}";
+    }
+  } else {
+    result += '"' + a.toString() + '"';
+  }
+
+  return result
+};
 
 function ESSI(param, confFile) {
   this.cacheDir = null;
@@ -140,7 +179,8 @@ ESSI.prototype = {
             unformatted: ["code", "pre", "em", "strong", "span"]
           });
         }
-
+        VM.setConfig(this.param);
+        content = VM.compile(realpath, content);
         cb(null, Helper.encode(content, this.param.charset));
 
         this.trace.response(realpath);
