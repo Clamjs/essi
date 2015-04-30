@@ -94,6 +94,7 @@ exports = module.exports = function (param, dir) {
 };
 
 exports.name = pkg.name;
+exports.config = require("./lib/param");
 exports.gulp = function (param, dir) {
   var through = require("through2");
   var confFile = init_config(dir);
