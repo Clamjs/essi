@@ -26,7 +26,9 @@
     "mace": "~2.0.0",
     "merge": "~1.2.0",
     "mkdirp": "~0.5.0",
-    "through2": "~0.6.5"
+    "through2": "~0.6.5",
+    "velocity": "^0.7.2",
+    "velocityjs": "^0.5.0-alpha.6"
   },
   "devDependencies": {
     "plug-base": "~0.3.0"

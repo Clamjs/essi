@@ -8,9 +8,23 @@
 <!--#def {
   "data":"hello"
 }-->
+<!--#def {
+  "data1":"hello1"
+}-->
 
+<div>
+  __aaa__
+  __cdnPath__
+  __version__
+</div>
 <div>
   ${data}
 </div>
+
+<div>
+  ${data1}
+</div>
+
+<!--#include file="mod1.html" data='{"mod1":"im mod1","mod2":"outer mod2"}'-->
 </body>
 </html>

@@ -1,0 +1,41 @@
+module.exports = {
+  "foo": {
+    "get": function(Integer0) {
+      return "im get"
+    }
+  },
+  "a": {
+    "getA": function(DString0) {
+      return {}
+    }
+  },
+  "total": {},
+  "control": {
+    "setTemplate": function(DString0) {
+      return {
+        "setParameter": function(DString0, Integer1) {
+          return {
+            "setParameter": function(DString0, Reference1) {
+              return {}
+            }
+          }
+        }
+      }
+    },
+    "setParameter": function(DString0, Reference1) {
+      return {}
+    }
+  },
+  "list": [{
+    "haha": function() {
+      return {}
+    }
+  }],
+  "bar": {
+    "foo": function() {
+      return {}
+    }
+  },
+  "r": {},
+  "id":"1212"
+}

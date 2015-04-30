@@ -8,5 +8,10 @@ var app = require("plug-base");
 app.root('src');
 app.disableHosts();
 app
-  .plug(require("../"), {})
+  .plug(require("../"), {
+    replaces:{
+      "__aaa__":"bbb1"
+    },
+    version: "1.1.1"
+  })
   .listen(80, 443);

@@ -1,0 +1,41 @@
+    <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="gbk" />
+        <title>$!title</title>
+        #if($!{spmId})
+        <meta name="spm-id" content="$!{spmId}" />
+        #end
+        <link rel="shortcut icon" href="http://pics.taobao.com/favicon.ico" type="image/x-icon"/>
+        <script type="text/javascript" src="http://assets.taobaocdn.com/tbra/1.0/tbra-aio.js"></script>
+        <script type="text/javascript" src="http://assets.taobaocdn.com/tbra/1.0/build/widget/simplecalendar.js"></script>
+        <link rel="stylesheet" href="$!assetsJuJsServer/panel/panel.css?t=20131120.css" />
+        <script src="$!assetsJuJsServer/panel/panel.js?t=20131120.js"></script>
+        <script src="$!assetsJuJsServer/panel/js/leftmenu.js?t=20120710.js"></script>
+        </head>
+        <body>
+        <div id="wrapper">
+        <!-- 头部 -->
+        <div id="header">
+        <div id="innerHeader">
+        <span style="position:absolute; margin:10px 0px 0px 330px;font-size:150%;color:white;">
+        #if($!stringUtil.contains("$!systemUtil.hostInfo.name","pre"))
+        （预发环境）
+        #end
+        <span style="color:transparent;font-size:50%;" id="server-num">$!systemUtil.hostInfo.name</span>
+        </span>
+        <h1><a href="#"><img src="http://img04.taobaocdn.com/tps/i4/T1RKF8XdRCXXXXXXXX-338-81.jpg" alt="聚划算后台"></a></h1>
+        <p class="prompt ui-corner-all"> 欢迎你！<span class="username">$!nick</span> <span class="logout"><a target="_blank" href="http://ur.taobao.com/survey/view.htm?id=2102">产品问题反馈</a></span> <span class="logout"><a target="_top" href="$!{bucSSOServer}sso_logout.htm">退出</a></span></p>
+        </div>
+        </div>
+        <div id="main">
+        <div id="sider" data-pid-daily="parentMenuId=1743,2893,3213" data-pid-online="parentMenuId=1045,2346,2653">
+
+        </div>
+        <div id="content">
+        $screen_placeholder
+        </div>
+        </div>
+        </div>
+        </body>
+        </html>

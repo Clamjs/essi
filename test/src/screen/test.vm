@@ -1,0 +1,27 @@
+screen
+
+    $foo[0]
+    $foo[$i]
+    $!foo[$i]
+    $foo.get(1)
+    $a.getA("hahdedee")
+
+    $total
+
+    haha
+
+    #set($total = 0)
+
+    $total
+
+    $control.setTemplate("admin/nbizInfoStep.vm").setParameter("step",4).setParameter("id",$!{id})
+
+
+    #set($total = 0) #foreach($i in $list) #set($total = $total + $i) $i["test"] $i.haha() #end $total
+
+    $bar.foo()
+    #if(1 > $r)
+        #set($foo=$bar)
+    #end
+
+
