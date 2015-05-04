@@ -1,0 +1,18 @@
+module.exports = {
+  "title": {},
+  "spmId": {},
+  "assetsJuJsServer": {},
+  "stringUtil": {
+    "contains": function(DString0, DString1) {
+      return {}
+    }
+  },
+  "systemUtil": {
+    "hostInfo": {
+      "name": {}
+    }
+  },
+  "nick": {},
+  "bucSSOServer": {},
+  "screen_placeholder": {}
+}

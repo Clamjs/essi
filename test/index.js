@@ -5,7 +5,7 @@
 var path = require("path");
 var app = require("plug-base");
 
-app.root('src');
+app.root("src");
 app.disableHosts();
 app
   .plug(require("../"), {
@@ -14,4 +14,4 @@ app
     },
     version: "1.1.1"
   })
-  .listen(80, 443);
+  .listen(8080);

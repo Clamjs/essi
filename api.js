@@ -10,48 +10,10 @@ var HTML = require("js-beautify").html;
 var Stack = require("plug-trace").stack;
 
 var Juicer = require("./lib/juicer");
+var VM = require("./lib/vm");
 var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
-var VM = require("./lib/vm");
-
-
-var print = function (a) {
-  var result = "";
-  if (typeof a == "object") {
-
-    if (a instanceof(Array)) {
-      result += "[";
-      var index = 0;
-      for (var i = 0; i < a.length; i++) {
-
-        if (index > 0) {
-          result += ","
-        }
-        result += print(a[i]);
-        index++;
-      }
-      result += "]";
-    }
-    else {
-      result += "{";
-      var index = 0;
-      for (var i in a) {
-
-        if (index > 0) {
-          result += ","
-        }
-        result += '"' + i + '":' + print(a[i]);
-        index++;
-      }
-      result += "}";
-    }
-  } else {
-    result += '"' + a.toString() + '"';
-  }
-
-  return result
-};
 
 function ESSI(param, confFile) {
   this.cacheDir = null;
@@ -107,17 +69,16 @@ function ESSI(param, confFile) {
       fsLib.chmod(dir, 0777);
     });
   }
-};
+}
 ESSI.prototype = {
   constructor: ESSI,
   compile: function (realpath, content, assetsFlag, cb) {
-    var local = new Juicer(this.param, this.trace);
-
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
       content = Helper.decode(content);
     }
 
+    /** Juicer处理 */
     var isJuicer = true;
     var ignoreJuicer = this.param.ignoreJuicer;
     if (util.isArray(ignoreJuicer)) {
@@ -128,12 +89,18 @@ ESSI.prototype = {
     else if (typeof ignoreJuicer == "boolean") {
       isJuicer = !ignoreJuicer;
     }
-
+    var local = new Juicer(this.param, this.trace);
     if (content) {
       content = local.parse(content, realpath, isJuicer, true);
     }
     else {
       content = local.fetch(realpath, isJuicer);
+    }
+
+    /** Velocity处理 */
+    if (/\.vm$/.test(realpath)) {
+      VM.setConfig(this.param);
+      content = VM.compile(realpath, content);
     }
 
     if (content === false) {
@@ -159,6 +126,7 @@ ESSI.prototype = {
         if (this.param.native2ascii) {
           content = Helper.encodeHtml(content);
         }
+        content = content.replace(/^\n{1,}/, '');
 
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
@@ -179,10 +147,8 @@ ESSI.prototype = {
             unformatted: ["code", "pre", "em", "strong", "span"]
           });
         }
-        VM.setConfig(this.param);
-        content = VM.compile(realpath, content);
-        cb(null, Helper.encode(content, this.param.charset));
 
+        cb(null, Helper.encode(content, this.param.charset));
         this.trace.response(realpath);
       }.bind(this));
     }
