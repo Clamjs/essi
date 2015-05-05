@@ -72,7 +72,9 @@ function ESSI(param, confFile) {
 }
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (realpath, content, assetsFlag, cb) {
+  compile: function (realpath, content, cb) {
+    var assetsFlag = (content === null ? false : true);
+
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
       content = Helper.decode(content);
@@ -97,17 +99,17 @@ ESSI.prototype = {
       content = local.fetch(realpath, isJuicer);
     }
 
-    /** Velocity处理 */
-    if (/\.vm$/.test(realpath)) {
-      VM.setConfig(this.param);
-      content = VM.compile(realpath, content);
-    }
-
     if (content === false) {
       cb({code: "Not Found"});
     }
     else {
       content = Helper.customReplace(content, this.param.replaces);
+
+      /** Velocity处理 */
+      if (!assetsFlag && /\.vm$/.test(realpath)) {
+        VM.setConfig(realpath);
+        content = VM.compile(content);
+      }
 
       // 抓取远程页面
       var remote = new Remote(content, this.param, this.trace, this.cacheDir);
@@ -188,7 +190,7 @@ ESSI.prototype = {
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
-        this.compile(realPath, null, false, function (err, buff) {
+        this.compile(realPath, null, function (err, buff) {
           if (!err) {
             res.writeHead(200, Header);
             res.write(buff);

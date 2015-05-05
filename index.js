@@ -125,7 +125,6 @@ exports.gulp = function (param, dir) {
     essiInst.compile(
       file.path,
       file.contents,
-      true,
       function (err, buff) {
         var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
