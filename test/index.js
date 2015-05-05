@@ -12,6 +12,7 @@ app
     replaces:{
       "__aaa__":"bbb1"
     },
+    native2ascii:true,
     version: "1.1.1"
   })
   .listen(8080);
