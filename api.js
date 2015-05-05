@@ -103,10 +103,14 @@ ESSI.prototype = {
       cb({code: "Not Found"});
     }
     else {
+      var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
+
       content = Helper.customReplace(content, this.param.replaces);
 
       /** Velocity处理 */
       if (!assetsFlag && /\.vm$/.test(realpath)) {
+        content = assetsTool.action(content);
+
         VM.setConfig(realpath);
         content = VM.compile(content);
       }
@@ -119,16 +123,13 @@ ESSI.prototype = {
         }
 
         content = Helper.customReplace(content, this.param.replaces);
-
-        var assetsTool = new AssetsTool(realpath, content, this.param);
-        content = assetsTool.action(assetsFlag);
-
+        content = assetsTool.action(content);
         content = Helper.customReplace(content, this.param.replaces);
 
         if (this.param.native2ascii) {
           content = Helper.encodeHtml(content);
         }
-        content = content.replace(/^\n{1,}/, '');
+        content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
 
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
