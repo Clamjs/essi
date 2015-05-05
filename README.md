@@ -121,7 +121,8 @@ gulp
 ```
 {
   "rootdir": "src",                 // 根目录
-  "charset": "utf-8",               // 编码
+  "charset": "utf-8",               // 页面编码
+  "assetsCharset": "utf-8",         // assets编码
   "replaces": {                     // 变量替换（正则）
     "_name_": "boying"
   },
