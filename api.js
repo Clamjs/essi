@@ -112,7 +112,7 @@ ESSI.prototype = {
         content = assetsTool.action(content);
 
         VM.setConfig(realpath);
-        content = VM.compile(content);
+        content = VM.compile(content, local.getVars());
       }
 
       // 抓取远程页面
@@ -123,7 +123,7 @@ ESSI.prototype = {
         }
 
         content = Helper.customReplace(content, this.param.replaces);
-        content = assetsTool.action(content);
+        content = assetsTool.action(content, true);
         content = Helper.customReplace(content, this.param.replaces);
 
         if (this.param.native2ascii) {
