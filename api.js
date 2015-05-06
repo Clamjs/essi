@@ -111,8 +111,8 @@ ESSI.prototype = {
       if (!assetsFlag && /\.vm$/.test(realpath)) {
         content = assetsTool.action(content);
 
-        VM.setConfig(realpath);
-        content = VM.compile(content, local.getVars());
+        var vm = new VM(this.param, this.trace);
+        content = vm.render(content, realpath, local.getVars());
       }
 
       // 抓取远程页面
