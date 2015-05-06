@@ -180,6 +180,7 @@ ESSI.prototype = {
   handle: function (req, res, next) {
     var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
     this.trace.request(HOST, req.url);
+    this.trace.info(this.param.replaces, "Magic Variables");
 
     var Header = {
       "Access-Control-Allow-Origin": '*',
