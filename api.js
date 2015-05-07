@@ -93,6 +93,7 @@ ESSI.prototype = {
     }
     var local = new Juicer(this.param, this.trace);
     if (content) {
+      content = content.replace(/[\?&][^\?&]*?\$\{random\(\)\}/g, '');
       content = local.parse(content, realpath, isJuicer, true);
     }
     else {
