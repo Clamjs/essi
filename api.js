@@ -113,7 +113,7 @@ ESSI.prototype = {
         content = assetsTool.action(content);
 
         var vm = new VM(this.param, this.trace);
-        content = vm.render(content, realpath, local.getVars());
+        content = vm.render(content, realpath, local.getVars(true));
       }
 
       // 抓取远程页面
@@ -144,12 +144,14 @@ ESSI.prototype = {
         }
 
         if (!pass) {
+          content = content.replace(/\n\s{0,}#/g, "<!---->\n#");
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
             unformatted: ["code", "pre", "em", "strong", "span"]
           });
+          content = content.replace(new RegExp("\\s{0,}<!---->", 'g'), '');
         }
 
         cb(null, Helper.encode(content, this.param.charset));
