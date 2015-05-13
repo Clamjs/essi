@@ -42,7 +42,7 @@ function ESSI(param, confFile) {
     }
   }
 
-  this.param = merge.recursive(true, this.param, confJSON, param);
+  this.param = merge.recursive(true, this.param, param, confJSON);
 
   // Magic Variable
   var key;
