@@ -53,6 +53,9 @@ function ESSI(param, confFile) {
     }
   }
 
+  this.param.cdnPath = this.param.cdnPath || '/';
+  this.param.version = this.param.version || '';
+
   var rootdir = this.param.rootdir || "src";
   if (rootdir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(rootdir)) {
     this.param.rootdir = rootdir;
