@@ -1,5 +1,7 @@
 screen
 
+中文
+
     $foo[0]
     $foo[$i]
     $!foo[$i]

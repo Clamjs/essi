@@ -3,17 +3,21 @@
  * 通过require("essi")
  * */
 var ESSI = require("./api");
+var trace = require("plug-trace");
 
 var pkg = require(__dirname + "/package.json");
-require("check-update")({
-  packageName: pkg.name,
-  packageVersion: pkg.version,
-  isCLI: process.title == "node"
-}, function (err, latestVersion, defaultMessage) {
-  if (!err && pkg.version < latestVersion) {
-    console.log(defaultMessage);
-  }
-});
+var starter = process.argv[1];
+if (!new RegExp("clam$").test(starter)) {
+  require("check-update")({
+    packageName: pkg.name,
+    packageVersion: pkg.version,
+    isCLI: new RegExp(pkg.name + '$').test(starter)
+  }, function (err, latestVersion, defaultMessage) {
+    if (!err && pkg.version < latestVersion) {
+      console.log(defaultMessage);
+    }
+  });
+}
 
 function init_config(dir) {
   var pathLib = require("path");
@@ -21,7 +25,7 @@ function init_config(dir) {
   var mkdirp = require("mkdirp");
 
   if (dir) {
-    var confDir, confFile, json = pathLib.basename(__dirname) + ".json";
+    var confDir, confFile, json = pkg.name + ".json";
     if (dir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(dir)) {
       if (/\.json$/.test(dir)) {
         confFile = dir;
@@ -51,6 +55,11 @@ function init_config(dir) {
 
 exports = module.exports = function (param, dir) {
   var confFile = init_config(dir);
+
+  process.on(pkg.name, function (data) {
+    console.log("\n=== Served by %s ===", trace.chalk.white(pkg.name));
+    trace(data);
+  });
 
   return function () {
     var essiInst = new ESSI(param, confFile);
@@ -87,13 +96,21 @@ exports = module.exports = function (param, dir) {
   }
 };
 
+exports.name = pkg.name;
+exports.config = require("./lib/param");
 exports.gulp = function (param, dir) {
   var through = require("through2");
+  var confFile = init_config(dir);
 
-  var essiInst = new ESSI(param, init_config(dir));
-  essiInst.param.traceRule = false;
+  process
+    .removeAllListeners(pkg.name)
+    .on(pkg.name, function (data) {
+      trace(data, "error");
+    });
 
   return through.obj(function (file, enc, cb) {
+    var essiInst = new ESSI(param, confFile);
+
     var self = this;
 
     if (file.isNull()) {
@@ -111,7 +128,6 @@ exports.gulp = function (param, dir) {
     essiInst.compile(
       file.path,
       file.contents,
-      true,
       function (err, buff) {
         var str = buff.toString();
         if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {

@@ -1,7 +1,7 @@
 {
   "name": "essi",
-  "version": "0.8.0",
-  "description": "Enhanced SSI",
+  "version": "0.9.2",
+  "description": "Enhanced SSI with Juicer & Velocity",
   "main": "index.js",
   "scripts": {},
   "keywords": [
@@ -23,14 +23,13 @@
     "is-utf8": "~0.2.0",
     "js-beautify": "~1.5.5",
     "juicer": "~0.6.8-stable",
-    "mace": "~2.0.0",
     "merge": "~1.2.0",
     "mkdirp": "~0.5.0",
+    "plug-trace": "~0.0.5",
     "through2": "~0.6.5",
-    "velocity": "^0.7.2",
-    "velocityjs": "^0.5.0-alpha.6"
+    "velocity": "~0.7.2"
   },
   "devDependencies": {
-    "plug-base": "~0.3.0"
+    "plug-base": "~0.3.1"
   }
 }
