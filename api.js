@@ -35,6 +35,8 @@ function ESSI(param, confFile) {
     try {
       confJSON = require(confFile);
       delete require.cache[confFile];
+
+      param.hosts = merge.recursive(param.hosts, confJSON.hosts || {});
     }
     catch (e) {
       this.trace.error("Can't require config file!", "IO");
@@ -42,7 +44,7 @@ function ESSI(param, confFile) {
     }
   }
 
-  this.param = merge.recursive(true, this.param, param, confJSON);
+  this.param = merge.recursive(true, this.param, confJSON, param);
 
   // Magic Variable
   var key;
@@ -52,9 +54,6 @@ function ESSI(param, confFile) {
       this.param.replaces[key] = this.param[i];
     }
   }
-
-  this.param.cdnPath = this.param.cdnPath || '/';
-  this.param.version = this.param.version || '';
 
   var rootdir = this.param.rootdir || "src";
   if (rootdir.indexOf('/') == 0 || /^\w{1}:[\\/].*$/.test(rootdir)) {
