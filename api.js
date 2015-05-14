@@ -1,13 +1,16 @@
 var pathLib = require("path");
 var fsLib = require("fs");
+var urlLib = require("url");
 var util = require("util");
 var merge = require("merge");
 var mkdirp = require("mkdirp");
 var fetch = require("fetch-agent");
 var J = require("juicer");
 var HTML = require("js-beautify").html;
+var Stack = require("plug-trace").stack;
 
 var Juicer = require("./lib/juicer");
+var VM = require("./lib/vm");
 var Remote = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
 var Helper = require("./lib/helper");
@@ -17,6 +20,8 @@ function ESSI(param, confFile) {
 
   this.param = merge(true, require("./lib/param"));
   param = param || {};
+
+  this.trace = new Stack(require(__dirname + "/package.json").name);
 
   var confJSON = {};
   if (confFile) {
@@ -30,9 +35,11 @@ function ESSI(param, confFile) {
     try {
       confJSON = require(confFile);
       delete require.cache[confFile];
+
+      param.hosts = merge.recursive(param.hosts, confJSON.hosts || {});
     }
     catch (e) {
-      Helper.Log.error("Params Error!");
+      this.trace.error("Can't require config file!", "IO");
       confJSON = {};
     }
   }
@@ -64,19 +71,18 @@ function ESSI(param, confFile) {
       fsLib.chmod(dir, 0777);
     });
   }
-
-  this.param.traceRule = new RegExp(this.param.traceRule, 'i');
-};
+}
 ESSI.prototype = {
   constructor: ESSI,
-  compile: function (realpath, content, assetsFlag, cb) {
-    var local = new Juicer(this.param);
+  compile: function (realpath, content, cb) {
+    var assetsFlag = (content === null ? false : true);
 
     // 保证content是String型，非Buffer
     if (content && Buffer.isBuffer(content)) {
       content = Helper.decode(content);
     }
 
+    /** Juicer处理 */
     var isJuicer = true;
     var ignoreJuicer = this.param.ignoreJuicer;
     if (util.isArray(ignoreJuicer)) {
@@ -87,8 +93,9 @@ ESSI.prototype = {
     else if (typeof ignoreJuicer == "boolean") {
       isJuicer = !ignoreJuicer;
     }
-
+    var local = new Juicer(this.param, this.trace);
     if (content) {
+      content = content.replace(/\$\{random\(\)\}/g, '');
       content = local.parse(content, realpath, isJuicer, true);
     }
     else {
@@ -99,25 +106,33 @@ ESSI.prototype = {
       cb({code: "Not Found"});
     }
     else {
+      var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
+
       content = Helper.customReplace(content, this.param.replaces);
 
+      /** Velocity处理 */
+      if (!assetsFlag && /\.vm$/.test(realpath)) {
+        content = assetsTool.action(content);
+
+        var vm = new VM(this.param, this.trace);
+        content = vm.render(content, realpath, local.getVars(true));
+      }
+
       // 抓取远程页面
-      var remote = new Remote(content, this.param, this.cacheDir);
+      var remote = new Remote(content, this.param, this.trace, this.cacheDir);
       remote.fetch(function (content) {
         if (!content) {
           content = Helper.readFileInUTF8(realpath);
         }
 
         content = Helper.customReplace(content, this.param.replaces);
-
-        var assetsTool = new AssetsTool(realpath, content, this.param);
-        content = assetsTool.action(assetsFlag);
-
+        content = assetsTool.action(content, true);
         content = Helper.customReplace(content, this.param.replaces);
 
         if (this.param.native2ascii) {
           content = Helper.encodeHtml(content);
         }
+        content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
 
         var pass = false;
         var ignorePretty = this.param.ignorePretty;
@@ -131,45 +146,65 @@ ESSI.prototype = {
         }
 
         if (!pass) {
+          content = content.replace(/\n\s{0,}#/g, "<!---->\n#");
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
             unformatted: ["code", "pre", "em", "strong", "span"]
           });
+          content = content.replace(new RegExp("\\s{0,}<!---->", 'g'), '');
         }
 
         cb(null, Helper.encode(content, this.param.charset));
+        this.trace.response(realpath);
       }.bind(this));
     }
   },
+  getRealPath: function (_url) {
+    var _filter = this.param.filter || {};
+    var jsonstr = JSON.stringify(_filter).replace(/\\{2}/g, '\\');
+    var filter = [];
+    jsonstr.replace(/[\{\,]"([^"]*?)"/g, function (all, key) {
+      filter.push(key);
+    });
+
+    var regx, ori_url;
+    for (var k = 0, len = filter.length; k < len; k++) {
+      regx = new RegExp(filter[k]);
+      if (regx.test(_url)) {
+        ori_url = _url;
+        _url = _url.replace(regx, _filter[filter[k]]);
+        this.trace.filter(regx, ori_url, _url);
+      }
+    }
+
+    _url = urlLib.parse(_url).pathname;
+    return pathLib.join(this.param.rootdir, _url);
+  },
   handle: function (req, res, next) {
+    var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
+    this.trace.request(HOST, req.url);
+    this.trace.info(this.param.replaces, "Magic Variables");
+
     var Header = {
       "Access-Control-Allow-Origin": '*',
       "Content-Type": "text/html; charset=" + this.param.charset,
       "X-MiddleWare": "essi"
     };
+    var realPath = this.getRealPath(req.url);
 
-    var realPath = Helper.realPath(req.url, this.param);
     if (fsLib.existsSync(realPath)) {
       var state = fsLib.statSync(realPath);
       if (state && state.isFile()) {
-        if (("Request " + req.url).match(this.param.traceRule)) {
-          Helper.Log.request(req.url);
-        }
-
-        this.compile(realPath, null, false, function (err, buff) {
+        this.compile(realPath, null, function (err, buff) {
           if (!err) {
             res.writeHead(200, Header);
             res.write(buff);
             res.end();
-
-            if (("Response " + realPath).match(this.param.traceRule)) {
-              Helper.Log.response(realPath + "\n");
-            }
           }
           else {
-            Helper.Log.error("  <= " + realPath + ' ' + err.code + "!\n");
+            this.trace.error(realPath, err.code);
             next();
           }
         }.bind(this));
@@ -189,7 +224,7 @@ ESSI.prototype = {
             code: 500,
             reason: err.code
           }));
-          Helper.Log.error(req.url + ' ' + err.code + "!\n");
+          this.trace.error(req.url, err.code);
         }
         else if (nsres.statusCode) {
           if (nsres.statusCode == 302) {
@@ -205,7 +240,7 @@ ESSI.prototype = {
                 code: 404,
                 reason: "Not Found"
               }));
-              Helper.Log.error(realPath + " Not Found!\n");
+              this.trace.error(realPath, "404 Not Found");
             }
             else {
               res.write(buff);
@@ -213,6 +248,7 @@ ESSI.prototype = {
           }
         }
         res.end();
+        this.trace.response(HOST + req.url);
       }.bind(this));
     }
   }
