@@ -162,6 +162,7 @@ ESSI.prototype = {
     }
   },
   getRealPath: function (_url) {
+    _url = urlLib.parse(_url).pathname;
     var _filter = this.param.filter || {};
     var jsonstr = JSON.stringify(_filter).replace(/\\{2}/g, '\\');
     var filter = [];
