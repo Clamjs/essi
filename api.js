@@ -157,11 +157,11 @@ ESSI.prototype = {
         }
 
         cb(null, Helper.encode(content, this.param.charset));
-        this.trace.response(realpath);
       }.bind(this));
     }
   },
   getRealPath: function (_url) {
+    _url = urlLib.parse(_url).pathname;
     var _filter = this.param.filter || {};
     var jsonstr = JSON.stringify(_filter).replace(/\\{2}/g, '\\');
     var filter = [];
@@ -202,6 +202,7 @@ ESSI.prototype = {
             res.writeHead(200, Header);
             res.write(buff);
             res.end();
+            this.trace.response(realPath, buff);
           }
           else {
             this.trace.error(realPath, err.code);
