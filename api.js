@@ -157,7 +157,6 @@ ESSI.prototype = {
         }
 
         cb(null, Helper.encode(content, this.param.charset));
-        this.trace.response(realpath);
       }.bind(this));
     }
   },
@@ -203,6 +202,7 @@ ESSI.prototype = {
             res.writeHead(200, Header);
             res.write(buff);
             res.end();
+            this.trace.response(realPath, buff);
           }
           else {
             this.trace.error(realPath, err.code);

@@ -139,8 +139,7 @@ gulp
   "version": "1.0.0",               // assets版本
   "css": ".min.css",
   "js": ".min.js",
-  "strictPage": false,              // 是否只输出严格完整的页面，不输出HTML片段
-  "traceRule": ""                   // 终端trace信息输出筛选规则（正则字符串）
+  "strictPage": false               // 是否只输出严格完整的页面，不输出HTML片段
 }
 ```
 
