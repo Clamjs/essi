@@ -111,7 +111,8 @@ ESSI.prototype = {
       content = Helper.customReplace(content, this.param.replaces);
 
       /** Velocity处理 */
-      if (!assetsFlag && /\.vm$/.test(realpath)) {
+      var isVM = /\.vm$/.test(realpath);
+      if (!assetsFlag && isVM) {
         content = assetsTool.action(content);
 
         var vm = new VM(this.param, this.trace);
@@ -145,15 +146,13 @@ ESSI.prototype = {
           pass = ignorePretty;
         }
 
-        if (!pass) {
-          content = content.replace(/\n\s{0,}#/g, "<!---->\n#");
+        if (!pass && !isVM) {
           content = HTML(content, {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
             unformatted: ["code", "pre", "em", "strong", "span"]
           });
-          content = content.replace(new RegExp("\\s{0,}<!---->", 'g'), '');
         }
 
         cb(null, Helper.encode(content, this.param.charset));
@@ -183,74 +182,80 @@ ESSI.prototype = {
     return pathLib.join(this.param.rootdir, _url);
   },
   handle: function (req, res, next) {
-    var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
-    this.trace.request(HOST, req.url);
-    this.trace.info(this.param.replaces, "Magic Variables");
-
-    var Header = {
-      "Access-Control-Allow-Origin": '*',
-      "Content-Type": "text/html; charset=" + this.param.charset,
-      "X-MiddleWare": "essi"
-    };
-    var realPath = this.getRealPath(req.url);
-
-    if (fsLib.existsSync(realPath)) {
-      var state = fsLib.statSync(realPath);
-      if (state && state.isFile()) {
-        this.compile(realPath, null, function (err, buff) {
-          if (!err) {
-            res.writeHead(200, Header);
-            res.write(buff);
-            res.end();
-            this.trace.response(realPath, buff);
-          }
-          else {
-            this.trace.error(realPath, err.code);
-            next();
-          }
-        }.bind(this));
-      }
-      else {
-        next();
-      }
+    var matching = this.param.supportedFile;
+    if (matching.length && !new RegExp(matching.join('|')).test(req.url)) {
+      next();
     }
     else {
-      fetch.pipe(req, this.param.hosts, function (err, buff, nsres) {
-        var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
+      var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
+      this.trace.request(HOST, req.url);
+      this.trace.info(this.param.replaces, "Magic Variables");
 
-        if (err) {
-          res.writeHead(500, Header);
-          res.write(J(errorTPL, {
-            url: req.url,
-            code: 500,
-            reason: err.code
-          }));
-          this.trace.error(req.url, err.code);
-        }
-        else if (nsres.statusCode) {
-          if (nsres.statusCode == 302) {
-            res.writeHead(302, {
-              "Location": nsres.headers.location
-            });
-          }
-          else {
-            res.writeHead(nsres.statusCode, Header);
-            if (nsres.statusCode == 404) {
-              res.write(J(errorTPL, {
-                url: realPath,
-                code: 404,
-                reason: "Not Found"
-              }));
-              this.trace.error(realPath, "404 Not Found");
+      var Header = {
+        "Access-Control-Allow-Origin": '*',
+        "Content-Type": "text/html; charset=" + this.param.charset,
+        "X-MiddleWare": "essi"
+      };
+      var realPath = this.getRealPath(req.url);
+
+      if (fsLib.existsSync(realPath)) {
+        var state = fsLib.statSync(realPath);
+        if (state && state.isFile()) {
+          this.compile(realPath, null, function (err, buff) {
+            if (!err) {
+              res.writeHead(200, Header);
+              res.write(buff);
+              res.end();
+              this.trace.response(realPath, buff);
             }
             else {
-              res.write(buff);
+              this.trace.error(realPath, err.code);
+              next();
+            }
+          }.bind(this));
+        }
+        else {
+          next();
+        }
+      }
+      else {
+        fetch.pipe(req, this.param.hosts, function (err, buff, nsres) {
+          var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
+
+          if (err) {
+            res.writeHead(500, Header);
+            res.write(J(errorTPL, {
+              url: req.url,
+              code: 500,
+              reason: err.code
+            }));
+            this.trace.error(req.url, err.code);
+          }
+          else if (nsres.statusCode) {
+            if (nsres.statusCode == 302) {
+              res.writeHead(302, {
+                "Location": nsres.headers.location
+              });
+            }
+            else {
+              res.writeHead(nsres.statusCode, Header);
+              if (nsres.statusCode == 404) {
+                res.write(J(errorTPL, {
+                  url: realPath,
+                  code: 404,
+                  reason: "Not Found"
+                }));
+                this.trace.error(realPath, "404 Not Found");
+              }
+              else {
+                res.write(buff);
+              }
             }
           }
-        }
-        res.end();
-        this.trace.response(HOST + req.url);
-      }.bind(this));
+          res.end();
+          this.trace.response(HOST + req.url);
+        }.bind(this));
+      }
     }
   }
 };
