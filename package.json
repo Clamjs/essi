@@ -1,6 +1,6 @@
 {
   "name": "essi",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Enhanced SSI with Juicer & Velocity",
   "main": "index.js",
   "scripts": {},
@@ -17,7 +17,6 @@
   "author": "limingv5",
   "license": "ISC",
   "dependencies": {
-    "check-update": "~0.0.8",
     "fetch-agent": "~0.2.3",
     "iconv-lite": "~0.4.0",
     "is-utf8": "~0.2.0",
