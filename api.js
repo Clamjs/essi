@@ -219,42 +219,16 @@ ESSI.prototype = {
         }
       }
       else {
-        fetch.pipe(req, this.param.hosts, function (err, buff, nsres) {
-          var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
+        var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
+        res.write(J(errorTPL, {
+          url: realPath,
+          code: 404,
+          reason: "Not Found"
+        }));
+        res.end();
 
-          if (err) {
-            res.writeHead(500, Header);
-            res.write(J(errorTPL, {
-              url: req.url,
-              code: 500,
-              reason: err.code
-            }));
-            this.trace.error(req.url, err.code);
-          }
-          else if (nsres.statusCode) {
-            if (nsres.statusCode == 302) {
-              res.writeHead(302, {
-                "Location": nsres.headers.location
-              });
-            }
-            else {
-              res.writeHead(nsres.statusCode, Header);
-              if (nsres.statusCode == 404) {
-                res.write(J(errorTPL, {
-                  url: realPath,
-                  code: 404,
-                  reason: "Not Found"
-                }));
-                this.trace.error(realPath, "404 Not Found");
-              }
-              else {
-                res.write(buff);
-              }
-            }
-          }
-          res.end();
-          this.trace.response(HOST + req.url);
-        }.bind(this));
+        this.trace.error(realPath, "404 Not Found");
+        this.trace.response(HOST + req.url);
       }
     }
   }
