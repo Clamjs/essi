@@ -170,7 +170,7 @@ ESSI.prototype = {
 
     var regx, ori_url;
     for (var k = 0, len = filter.length; k < len; k++) {
-      regx = new RegExp(filter[k]);
+      regx = new RegExp(filter[k], 'g');
       if (regx.test(_url)) {
         ori_url = _url;
         _url = _url.replace(regx, _filter[filter[k]]);
