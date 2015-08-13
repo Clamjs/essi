@@ -82,7 +82,6 @@ ESSI.prototype = {
       content = Helper.decode(content);
     }
 
-    /** Juicer处理 */
     var isJuicer = true;
     var ignoreJuicer = this.param.ignoreJuicer;
     if (util.isArray(ignoreJuicer)) {
@@ -93,6 +92,15 @@ ESSI.prototype = {
     else if (typeof ignoreJuicer == "boolean") {
       isJuicer = !ignoreJuicer;
     }
+
+    var isVM = /\.vm$/.test(realpath);
+    if (isVM) {
+      isJuicer = false;
+    }
+    else {
+      this.trace.info(this.param.replaces, "Magic Variables");
+    }
+
     var local = new Juicer(this.param, this.trace);
     if (content) {
       content = content.replace(/\$\{random\(\)\}/g, '');
@@ -106,57 +114,53 @@ ESSI.prototype = {
       cb({code: "Not Found"});
     }
     else {
-      var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
-
-      content = Helper.customReplace(content, this.param.replaces);
-
-      /** Velocity处理 */
-      var isVM = /\.vm$/.test(realpath);
-      if (!assetsFlag && isVM) {
-        content = assetsTool.action(content);
-
+      if (isVM) {
         var vm = new VM(this.param, this.trace);
-        content = vm.render(content, realpath, local.getVars(true));
-      }
-
-      // 抓取远程页面
-      var remote = new Remote(content, this.param, this.trace, this.cacheDir);
-      remote.fetch(function (content) {
-        if (!content) {
-          content = Helper.readFileInUTF8(realpath);
-        }
-
-        content = Helper.customReplace(content, this.param.replaces);
-        content = assetsTool.action(content, true);
-        content = Helper.customReplace(content, this.param.replaces);
-
-        if (this.param.native2ascii) {
-          content = Helper.encodeHtml(content);
-        }
-        content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
-
-        var pass = false;
-        var ignorePretty = this.param.ignorePretty;
-        if (util.isArray(ignorePretty)) {
-          pass = ignorePretty.some(function (i) {
-            return new RegExp(i).test(realpath);
-          });
-        }
-        else if (typeof ignorePretty == "boolean") {
-          pass = ignorePretty;
-        }
-
-        if (!pass && !isVM) {
-          content = HTML(content, {
-            indent_char: ' ',
-            indent_size: 2,
-            indent_inner_html: true,
-            unformatted: ["code", "pre", "em", "strong", "span"]
-          });
-        }
-
+        content = vm.render(content, realpath);
         cb(null, Helper.encode(content, this.param.charset));
-      }.bind(this));
+      }
+      else {
+        content = Helper.customReplace(content, this.param.replaces);
+        // 抓取远程页面
+        var remote = new Remote(content, this.param, this.trace, this.cacheDir);
+        remote.fetch(function (content) {
+          if (!content) {
+            content = Helper.readFileInUTF8(realpath);
+          }
+
+          content = Helper.customReplace(content, this.param.replaces);
+          var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
+          content = assetsTool.action(content, true);
+          content = Helper.customReplace(content, this.param.replaces);
+
+          if (this.param.native2ascii) {
+            content = Helper.encodeHtml(content);
+          }
+          content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
+
+          var pass = false;
+          var ignorePretty = this.param.ignorePretty;
+          if (util.isArray(ignorePretty)) {
+            pass = ignorePretty.some(function (i) {
+              return new RegExp(i).test(realpath);
+            });
+          }
+          else if (typeof ignorePretty == "boolean") {
+            pass = ignorePretty;
+          }
+
+          if (!pass && !isVM) {
+            content = HTML(content, {
+              indent_char: ' ',
+              indent_size: 2,
+              indent_inner_html: true,
+              unformatted: ["code", "pre", "em", "strong", "span"]
+            });
+          }
+
+          cb(null, Helper.encode(content, this.param.charset));
+        }.bind(this));
+      }
     }
   },
   getRealPath: function (_url) {
@@ -189,7 +193,6 @@ ESSI.prototype = {
     else {
       var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
       this.trace.request(HOST, req.url);
-      this.trace.info(this.param.replaces, "Magic Variables");
 
       var Header = {
         "Access-Control-Allow-Origin": '*',
