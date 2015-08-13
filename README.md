@@ -89,6 +89,10 @@ Your can read [Reference](http://juicer.name/docs/docs_zh_cn.html) for detail.
 
 ```
 
+# Velocity syntax
+
+[Thinks for velocity](https://www.npmjs.com/package/velocity)
+
 # Install & Usage
 
 ```

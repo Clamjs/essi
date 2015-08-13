@@ -1,6 +1,6 @@
 {
   "name": "essi",
-  "version": "0.9.11",
+  "version": "0.10.0",
   "description": "Enhanced SSI with Juicer & Velocity",
   "main": "index.js",
   "scripts": {},
@@ -24,7 +24,7 @@
     "juicer": "~0.6.10-stable",
     "merge": "~1.2.0",
     "mkdirp": "~0.5.1",
-    "plug-trace": "~0.1.0",
+    "plug-trace": "~0.1.4",
     "through2": "~0.6.5",
     "velocity": "~0.7.2"
   },
