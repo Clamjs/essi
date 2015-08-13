@@ -4,7 +4,6 @@ var urlLib = require("url");
 var util = require("util");
 var merge = require("merge");
 var mkdirp = require("mkdirp");
-var fetch = require("fetch-agent");
 var J = require("juicer");
 var HTML = require("js-beautify").html;
 var Stack = require("plug-trace").stack;
@@ -74,6 +73,28 @@ function ESSI(param, confFile) {
 }
 ESSI.prototype = {
   constructor: ESSI,
+  beautify: function (content, realpath) {
+    var pass = false;
+    var ignorePretty = this.param.ignorePretty;
+    if (util.isArray(ignorePretty)) {
+      pass = ignorePretty.some(function (i) {
+        return new RegExp(i).test(realpath);
+      });
+    }
+    else if (typeof ignorePretty == "boolean") {
+      pass = ignorePretty;
+    }
+
+    if (!pass) {
+      content = HTML(content, {
+        indent_char: ' ',
+        indent_size: 2,
+        indent_inner_html: true,
+        unformatted: ["code", "pre", "em", "strong", "span"]
+      });
+    }
+    return content;
+  },
   compile: function (realpath, content, cb) {
     var assetsFlag = (content === null ? false : true);
 
@@ -82,85 +103,59 @@ ESSI.prototype = {
       content = Helper.decode(content);
     }
 
-    var isJuicer = true;
-    var ignoreJuicer = this.param.ignoreJuicer;
-    if (util.isArray(ignoreJuicer)) {
-      isJuicer = ignoreJuicer.every(function (i) {
-        return !new RegExp(i).test(realpath);
-      });
-    }
-    else if (typeof ignoreJuicer == "boolean") {
-      isJuicer = !ignoreJuicer;
-    }
-
     var isVM = /\.vm$/.test(realpath);
     if (isVM) {
-      isJuicer = false;
+      var vm = new VM(this.param, this.trace);
+      if (!content) {
+        content = Helper.readFileInUTF8(realpath);
+      }
+
+      content = vm.render(content, realpath);
+      cb(null, Helper.encode(this.beautify(content, realpath), this.param.charset));
     }
     else {
       this.trace.info(this.param.replaces, "Magic Variables");
-    }
 
-    var local = new Juicer(this.param, this.trace);
-    if (content) {
-      content = content.replace(/\$\{random\(\)\}/g, '');
-      content = local.parse(content, realpath, isJuicer, true);
-    }
-    else {
-      content = local.fetch(realpath, isJuicer);
-    }
+      var isJuicer = true;
+      var ignoreJuicer = this.param.ignoreJuicer;
+      if (util.isArray(ignoreJuicer)) {
+        isJuicer = ignoreJuicer.every(function (i) {
+          return !new RegExp(i).test(realpath);
+        });
+      }
+      else if (typeof ignoreJuicer == "boolean") {
+        isJuicer = !ignoreJuicer;
+      }
 
-    if (content === false) {
-      cb({code: "Not Found"});
-    }
-    else {
-      if (isVM) {
-        var vm = new VM(this.param, this.trace);
-        content = vm.render(content, realpath);
-        cb(null, Helper.encode(content, this.param.charset));
+      var local = new Juicer(this.param, this.trace);
+      if (content) {
+        content = content.replace(/\$\{random\(\)\}/g, '');
+        content = local.parse(content, realpath, isJuicer, true);
       }
       else {
-        content = Helper.customReplace(content, this.param.replaces);
-        // 抓取远程页面
-        var remote = new Remote(content, this.param, this.trace, this.cacheDir);
-        remote.fetch(function (content) {
-          if (!content) {
-            content = Helper.readFileInUTF8(realpath);
-          }
-
-          content = Helper.customReplace(content, this.param.replaces);
-          var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
-          content = assetsTool.action(content, true);
-          content = Helper.customReplace(content, this.param.replaces);
-
-          if (this.param.native2ascii) {
-            content = Helper.encodeHtml(content);
-          }
-          content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
-
-          var pass = false;
-          var ignorePretty = this.param.ignorePretty;
-          if (util.isArray(ignorePretty)) {
-            pass = ignorePretty.some(function (i) {
-              return new RegExp(i).test(realpath);
-            });
-          }
-          else if (typeof ignorePretty == "boolean") {
-            pass = ignorePretty;
-          }
-
-          if (!pass && !isVM) {
-            content = HTML(content, {
-              indent_char: ' ',
-              indent_size: 2,
-              indent_inner_html: true,
-              unformatted: ["code", "pre", "em", "strong", "span"]
-            });
-          }
-
-          cb(null, Helper.encode(content, this.param.charset));
-        }.bind(this));
+        content = local.fetch(realpath, isJuicer);
       }
+
+      content = Helper.customReplace(content, this.param.replaces);
+      // 抓取远程页面
+      var remote = new Remote(content, this.param, this.trace, this.cacheDir);
+      remote.fetch(function (content) {
+        if (!content) {
+          content = Helper.readFileInUTF8(realpath);
+        }
+
+        content = Helper.customReplace(content, this.param.replaces);
+        var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
+        content = assetsTool.action(content, true);
+        content = Helper.customReplace(content, this.param.replaces);
+
+        if (this.param.native2ascii) {
+          content = Helper.encodeHtml(content);
+        }
+        content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
+
+        cb(null, Helper.encode(this.beautify(content, realpath), this.param.charset));
+      }.bind(this));
     }
   },
   getRealPath: function (_url) {
