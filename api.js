@@ -76,28 +76,6 @@ function ESSI(param, confFile) {
 }
 ESSI.prototype = {
   constructor: ESSI,
-  beautify: function (content, realpath) {
-    var pass = false;
-    var ignorePretty = this.param.ignorePretty;
-    if (util.isArray(ignorePretty)) {
-      pass = ignorePretty.some(function (i) {
-        return new RegExp(i).test(realpath);
-      });
-    }
-    else if (typeof ignorePretty == "boolean") {
-      pass = ignorePretty;
-    }
-
-    if (!pass) {
-      content = HTML(content, {
-        indent_char: ' ',
-        indent_size: 2,
-        indent_inner_html: true,
-        unformatted: ["code", "pre", "em", "strong", "span"]
-      });
-    }
-    return content;
-  },
   compile: function (realpath, content, cb) {
     var assetsFlag = (content === null ? false : true);
 
@@ -114,7 +92,7 @@ ESSI.prototype = {
       }
 
       content = vm.render(content, realpath);
-      cb(null, Helper.encode(this.beautify(content, realpath), this.param.charset));
+      cb(null, Helper.encode(content, this.param.charset));
     }
     else {
       this.trace.info(this.param.replaces, "Magic Variables");
@@ -157,7 +135,27 @@ ESSI.prototype = {
         }
         content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
 
-        cb(null, Helper.encode(this.beautify(content, realpath), this.param.charset));
+        var pass = false;
+        var ignorePretty = this.param.ignorePretty;
+        if (util.isArray(ignorePretty)) {
+          pass = ignorePretty.some(function (i) {
+            return new RegExp(i).test(realpath);
+          });
+        }
+        else if (typeof ignorePretty == "boolean") {
+          pass = ignorePretty;
+        }
+
+        if (!pass) {
+          content = HTML(content, {
+            indent_char: ' ',
+            indent_size: 2,
+            indent_inner_html: true,
+            unformatted: ["code", "pre", "em", "strong", "span"]
+          });
+        }
+
+        cb(null, Helper.encode(content, this.param.charset));
       }.bind(this));
     }
   },
