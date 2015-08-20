@@ -71,7 +71,7 @@ exports = module.exports = function (param, dir) {
     }
 
     try {
-      if (req && res && next) {
+      if (req && res && !res._header && next) {
         essiInst.handle(req, res, next);
       }
       else {
