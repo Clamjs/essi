@@ -140,6 +140,7 @@ gulp
   "native2ascii": false,            // 将HTML中的双字节字符（如中文）替换为HTML转义符号
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
+  "layout": "default.vm",           // velocity缺省layout文件
   "version": "1.0.0",               // assets版本
   "css": ".min.css",
   "js": ".min.js",
