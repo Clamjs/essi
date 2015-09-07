@@ -179,7 +179,18 @@ ESSI.prototype = {
     }
 
     _url = urlLib.parse(_url).pathname;
-    return pathLib.join(this.param.rootdir, _url);
+    var realPath = pathLib.join(this.param.rootdir, _url);
+    var vmRealPath = realPath.replace(/_(\w)/g, function (total, word) {
+      return word.toUpperCase();
+    });
+
+    var isExistsVM = fsLib.existsSync(vmRealPath);
+    if (fsLib.existsSync(realPath) || isExistsVM) {
+      return isExistsVM ? vmRealPath : realPath;
+    }
+    else {
+      return null;
+    }
   },
   handle: function (req, res, next) {
     var matching = this.param.supportedFile;
@@ -195,9 +206,9 @@ ESSI.prototype = {
         "Content-Type": "text/html; charset=" + this.param.charset,
         "X-MiddleWare": "essi"
       };
-      var realPath = this.getRealPath(req.url);
 
-      if (fsLib.existsSync(realPath)) {
+      var realPath = this.getRealPath(req.url);
+      if (realPath) {
         var state = fsLib.statSync(realPath);
         if (state && state.isFile()) {
           this.compile(realPath, null, function (err, buff) {
