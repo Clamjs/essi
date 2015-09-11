@@ -151,7 +151,7 @@ ESSI.prototype = {
             indent_char: ' ',
             indent_size: 2,
             indent_inner_html: true,
-            unformatted: ["code", "pre", "em", "strong", "span"]
+            unformatted: ["code", "pre", "em", "strong", "span", "script"]
           });
         }
 
