@@ -95,6 +95,12 @@ ESSI.prototype = {
       cb(null, Helper.encode(content, this.param.charset));
     }
     else {
+      var dirname = urlLib.resolve(
+        this.param.cdnPath + '/',
+        pathLib.dirname(pathLib.join(this.param.version, realpath.replace(this.param.rootdir, '')))
+      );
+      this.param.replaces["__fullPath__"] = dirname;
+
       this.trace.info(this.param.replaces, "Magic Variables");
 
       var isJuicer = true;
