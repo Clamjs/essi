@@ -136,7 +136,6 @@ gulp
   "hosts": {},                      // 域名与IP的hosts对应
   "ignoreTokens": [],               // 忽略解析某些Token（正则数组）
   "ignoreJuicer": [],               // 忽略使用juicer引擎解析的文件列表（正则数组）；若布尔型,则为全局生效开关
-  "ignorePretty": [],               // 忽略HTML缩进优化的文件列表（正则数组）；若布尔型,则为全局生效开关
   "native2ascii": false,            // 将HTML中的双字节字符（如中文）替换为HTML转义符号
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
