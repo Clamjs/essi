@@ -140,6 +140,7 @@ gulp
   "cache": true,                    // 是否缓存远程抓取页面
   "cdnPath": "http://domain/",      // assets地址补全
   "layout": "default.vm",           // velocity缺省layout文件
+  "screenPlaceholder": "screen_placeholder",           // velocity缺省layout文件占位符名称
   "version": "1.0.0",               // assets版本
   "css": ".min.css",
   "js": ".min.js",
