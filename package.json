@@ -1,6 +1,6 @@
 {
   "name": "essi",
-  "version": "0.10.20",
+  "version": "0.10.21",
   "description": "Enhanced SSI with Juicer & Velocity",
   "main": "index.js",
   "scripts": {},
