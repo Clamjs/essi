@@ -1,3 +1,1 @@
-#macro(noescape)
-$bodyContent
-#end
+#macro(noescape)${bodyContent}#end
