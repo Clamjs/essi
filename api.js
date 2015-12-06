@@ -195,7 +195,7 @@ ESSI.prototype = {
               res.writeHead(200, {
                 "Access-Control-Allow-Origin": '*',
                 "Content-Type": "text/html; charset=" + this.param.charset,
-                "Content-Length": Buffer.byteLength(buff),
+                "Content-Length": buff.length,
                 "X-MiddleWare": "essi"
               });
               res.write(buff);
