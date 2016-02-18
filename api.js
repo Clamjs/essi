@@ -186,19 +186,18 @@ ESSI.prototype = {
       var HOST = (req.connection.encrypted ? "https" : "http") + "://" + (req.hostname || req.host || req.headers.host);
       this.trace.request(HOST, req.url);
 
-      var Header = {
-        "Access-Control-Allow-Origin": '*',
-        "Content-Type": "text/html; charset=" + this.param.charset,
-        "X-MiddleWare": "essi"
-      };
-
       var realPath = this.getRealPath(req.url);
       if (realPath) {
         var state = fsLib.statSync(realPath);
         if (state && state.isFile()) {
           this.compile(realPath, null, function (err, buff) {
             if (!err) {
-              res.writeHead(200, Header);
+              res.writeHead(200, {
+                "Access-Control-Allow-Origin": '*',
+                "Content-Type": "text/html; charset=" + this.param.charset,
+                "Content-Length": buff.length,
+                "X-MiddleWare": "essi"
+              });
               res.write(buff);
               res.end();
               this.trace.response(realPath, buff);
