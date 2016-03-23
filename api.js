@@ -125,10 +125,7 @@ ESSI.prototype = {
       content = Helper.customReplace(content, this.param.replaces);
 
       var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
-      assetsTool.html(content);
-      assetsTool.extractScripts();
-      assetsTool.extractStyles();
-      content = assetsTool.html();
+      content = assetsTool.action(content, true);
 
       // 抓取远程页面
       var remote = new Remote(content, this.param, this.trace, this.cacheDir);
@@ -137,9 +134,6 @@ ESSI.prototype = {
           content = Helper.readFileInUTF8(realpath);
         }
 
-        content = Helper.customReplace(content, this.param.replaces);
-        var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
-        content = assetsTool.action(content, true);
         content = Helper.customReplace(content, this.param.replaces);
 
         if (this.param.native2ascii) {
