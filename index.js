@@ -87,7 +87,10 @@ exports = module.exports = function (param, dir) {
 exports.name = pkg.name;
 exports.config = require("./lib/param");
 exports.gulp = function (param, dir) {
+  param.livereload = false;
+
   var through = require("through2");
+  var Helper = require("./lib/helper");
   var confFile = init_config(dir);
 
   process
@@ -116,10 +119,9 @@ exports.gulp = function (param, dir) {
     essiInst.compile(
       file.path,
       file.contents,
-      function (err, buff) {
-        var str = buff.toString();
-        if (!param.strictPage || str.match(/<html[^>]*?>([\s\S]*?)<\/html>/gi)) {
-          file.contents = buff;
+      function (err, str) {
+        if (!param.strictPage || /<html[^>]*?>([\s\S]*?)<\/html>/gi.test(str)) {
+          file.contents = Helper.encode(str, param.charset);
           self.push(file);
           cb();
         }
@@ -130,3 +132,4 @@ exports.gulp = function (param, dir) {
     );
   });
 };
+exports.engine = exports.gulp;

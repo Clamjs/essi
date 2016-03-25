@@ -127,7 +127,7 @@ gulp
   "rootdir": "src",                 // 根目录
   "charset": "utf-8",               // 页面编码
   "assetsCharset": "utf-8",         // assets编码
-  "sourcemap": true,                // 是否在assets的地址中加入sourcemap开启标记
+  "livereload": true,               // 是否开启livereload
   "random": true,                   // 是否在assets的地址中加入随机数（防缓存）
   "replaces": {                     // 变量替换（正则）
     "_name_": "boying"

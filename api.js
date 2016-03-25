@@ -1,26 +1,39 @@
-var pathLib = require("path");
-var fsLib = require("fs");
-var urlLib = require("url");
-var util = require("util");
-var merge = require("merge");
-var mkdirp = require("mkdirp");
-var J = require("juicer");
-var Stack = require("plug-trace").stack;
+var pathLib    = require("path");
+var fsLib      = require("fs");
+var urlLib     = require("url");
+var util       = require("util");
+var merge      = require("merge");
+var mkdirp     = require("mkdirp");
+var J          = require("juicer");
+var livereload = require("livereload");
+var ipLib      = require("ip");
+var Stack      = require("plug-trace").stack;
 
-var Juicer = require("./lib/juicer");
-var VM = require("./lib/vm");
-var Remote = require("./lib/remote");
+var Juicer     = require("./lib/juicer");
+var VM         = require("./lib/vm");
+var Remote     = require("./lib/remote");
 var AssetsTool = require("./lib/assetsTool");
-var Helper = require("./lib/helper");
+var Helper     = require("./lib/helper");
+var genCer     = require(pathLib.join(__dirname, "/https/gen-cer.js"));
+
+var liveReloadMap = {
+  http: null,
+  https: null
+};
+var liveReloadIP = ipLib.address();
+var liveReloadPort = {
+  http: 3480,
+  https: 3443
+};
 
 function ESSI(param, confFile) {
   this.cacheDir = null;
 
   this.param = merge(true, require("./lib/param"));
-  param = param || {};
+  param      = param || {};
 
   var pkgName = require(__dirname + "/package.json").name;
-  this.trace = new Stack(pkgName);
+  this.trace  = new Stack(pkgName);
 
   var confJSON = {};
   if (confFile) {
@@ -72,7 +85,30 @@ function ESSI(param, confFile) {
       fsLib.chmod(this.cacheDir, 0777);
     }.bind(this));
   }
-}
+
+  if (this.param.livereload) {
+    if (liveReloadMap.http === null) {
+      liveReloadMap.http = livereload.createServer({
+        port: liveReloadPort.http
+      });
+      liveReloadMap.http.watch(this.param.rootdir);
+    }
+
+    if (liveReloadMap.https === null) {
+      genCer(liveReloadIP, function (e, key, cert) {
+        liveReloadMap.https = livereload.createServer({
+          port: liveReloadPort.https,
+          https: {
+            key: key,
+            cert: cert
+          }
+        });
+        liveReloadMap.https.watch(this.param.rootdir);
+      }.bind(this));
+    }
+  }
+};
+
 ESSI.prototype = {
   constructor: ESSI,
   compile: function (realpath, content, cb) {
@@ -90,11 +126,10 @@ ESSI.prototype = {
         content = Helper.readFileInUTF8(realpath);
       }
 
-      content = vm.render(content, realpath);
-      cb(null, Helper.encode(content, this.param.charset));
+      cb(null, vm.render(content, realpath));
     }
     else {
-      var dirname = urlLib.resolve(
+      var dirname                         = urlLib.resolve(
         this.param.cdnPath + '/',
         pathLib.dirname(pathLib.join(this.param.version, realpath.replace(this.param.rootdir, '')))
       );
@@ -102,7 +137,7 @@ ESSI.prototype = {
 
       this.trace.info(this.param.replaces, "Magic Variables");
 
-      var isJuicer = true;
+      var isJuicer     = true;
       var ignoreJuicer = this.param.ignoreJuicer;
       if (util.isArray(ignoreJuicer)) {
         isJuicer = ignoreJuicer.every(function (i) {
@@ -125,7 +160,7 @@ ESSI.prototype = {
       content = Helper.customReplace(content, this.param.replaces);
 
       var assetsTool = new AssetsTool(realpath, this.param, assetsFlag);
-      content = assetsTool.action(content, true);
+      content        = assetsTool.action(content, true);
 
       // 抓取远程页面
       var remote = new Remote(content, this.param, this.trace, this.cacheDir);
@@ -139,17 +174,15 @@ ESSI.prototype = {
         if (this.param.native2ascii) {
           content = Helper.encodeHtml(content);
         }
-        content = content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, '');
-
-        cb(null, Helper.encode(content, this.param.charset));
+        cb(null, content.replace(/^[\n\r]{1,}|[\n\r]{1,}$/g, ''));
       }.bind(this));
     }
   },
   getRealPath: function (_url) {
-    _url = urlLib.parse(_url).pathname;
+    _url        = urlLib.parse(_url).pathname;
     var _filter = this.param.filter || {};
     var jsonstr = JSON.stringify(_filter).replace(/\\{2}/g, '\\');
-    var filter = [];
+    var filter  = [];
     jsonstr.replace(/[\{\,]"([^"]*?)"/g, function (all, key) {
       filter.push(key);
     });
@@ -159,13 +192,13 @@ ESSI.prototype = {
       regx = new RegExp(filter[k], 'g');
       if (regx.test(_url)) {
         ori_url = _url;
-        _url = _url.replace(regx, _filter[filter[k]]);
+        _url    = _url.replace(regx, _filter[filter[k]]);
         this.trace.filter(regx, ori_url, _url);
       }
     }
 
-    _url = urlLib.parse(_url).pathname;
-    var realPath = pathLib.join(this.param.rootdir, _url);
+    _url           = urlLib.parse(_url).pathname;
+    var realPath   = pathLib.join(this.param.rootdir, _url);
     var vmRealPath = realPath.replace(/_(\w)/g, function (total, word) {
       return word.toUpperCase();
     });
@@ -191,14 +224,20 @@ ESSI.prototype = {
       if (realPath) {
         var state = fsLib.statSync(realPath);
         if (state && state.isFile()) {
-          this.compile(realPath, null, function (err, buff) {
+          this.compile(realPath, null, function (err, content) {
             if (!err) {
+              if (this.param.livereload) {
+                content = Helper.addLiveReload(content, liveReloadIP, liveReloadPort[req.connection.encrypted ? "https" : "http"]);
+              }
+              var buff = Helper.encode(content, this.param.charset);
+
               res.writeHead(200, {
                 "Access-Control-Allow-Origin": '*',
                 "Content-Type": "text/html; charset=" + this.param.charset,
                 "Content-Length": buff.length,
                 "X-MiddleWare": "essi"
               });
+
               res.write(buff);
               res.end();
               this.trace.response(realPath, buff);
