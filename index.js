@@ -71,8 +71,13 @@ exports = module.exports = function (param, dir) {
     }
 
     try {
-      if (req && res && !res._header && next) {
-        essiInst.handle(req, res, next);
+      if (req && res && next) {
+        if (/\.vm|\.htm/.test(req.url)) {
+          essiInst.handle(req, res, next);
+        }
+        else {
+          next();
+        }
       }
       else {
         next();
