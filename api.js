@@ -254,6 +254,7 @@ ESSI.prototype = {
       }
       else {
         var errorTPL = Helper.readFileInUTF8(pathLib.join(__dirname, "www/error.tpl"));
+        res.statusCode = 404;
         res.write(J(errorTPL, {
           url: realPath,
           code: 404,
